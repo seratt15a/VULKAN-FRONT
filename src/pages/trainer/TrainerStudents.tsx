@@ -2,8 +2,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { MembershipBadge } from '../../components/Badge';
 import { sortByDay } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 export function TrainerStudents() {
+  usePageTitle('Mis Alumnos');
   const { session } = useAuth();
   const { classes, members } = useData();
 

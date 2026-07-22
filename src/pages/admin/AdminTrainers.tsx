@@ -4,12 +4,14 @@ import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { usePageTitle } from '../../lib/usePageTitle';
 import type { Trainer } from '../../data/types';
 
 type FormState = { name: string; email: string; specialty: string; bio: string };
 const emptyForm: FormState = { name: '', email: '', specialty: '', bio: '' };
 
 export function AdminTrainers() {
+  usePageTitle('Entrenadores');
   const { trainers, classes, addTrainer, updateTrainer, deleteTrainer } = useData();
   const { showToast } = useToast();
   const [editing, setEditing] = useState<Trainer | null>(null);

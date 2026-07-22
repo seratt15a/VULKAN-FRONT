@@ -5,8 +5,10 @@ import { useData } from '../../context/DataContext';
 import { MembershipBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { formatDate, daysUntil, sortByDay } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 export function MemberDashboard() {
+  usePageTitle('Dashboard');
   const { session } = useAuth();
   const { members, classes, trainers } = useData();
 

@@ -2,9 +2,11 @@ import { useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import { DEMO_PASSWORD } from '../lib/demoAccounts';
 import { homeByRole } from '../lib/roleHome';
+import { usePageTitle } from '../lib/usePageTitle';
 import { useAuth } from '../context/AuthContext';
 
 export function Login() {
+  usePageTitle('Iniciar sesión');
   const { session, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

@@ -3,8 +3,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { StatCard } from '../../components/StatCard';
 import { sortByDay } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 export function TrainerSchedule() {
+  usePageTitle('Mi Horario');
   const { session } = useAuth();
   const { classes } = useData();
 

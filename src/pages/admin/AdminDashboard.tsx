@@ -4,10 +4,12 @@ import { MembershipBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { BarChart } from '../../components/BarChart';
 import { formatCurrency, formatDate } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 const MONTH_LABEL = new Intl.DateTimeFormat('es-ES', { month: 'short' });
 
 export function AdminDashboard() {
+  usePageTitle('Dashboard');
   const { members, classes, payments } = useData();
 
   const activeMembers = members.filter((m) => m.status === 'activa').length;

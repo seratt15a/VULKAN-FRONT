@@ -6,6 +6,7 @@ import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MembershipBadge } from '../../components/Badge';
 import { formatDate } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 import type { Member, MembershipPlan, MembershipStatus } from '../../data/types';
 
 const planFee: Record<MembershipPlan, number> = { Básico: 29, Pro: 49, Élite: 89 };
@@ -24,6 +25,7 @@ type FormState = {
 };
 
 export function AdminMembers() {
+  usePageTitle('Miembros');
   const { members, trainers, addMember, updateMember, deleteMember } = useData();
   const { showToast } = useToast();
   const [query, setQuery] = useState('');
@@ -175,7 +177,7 @@ export function AdminMembers() {
       <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', margin: '10px 0 14px' }}>Contacto de emergencia</h3>
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="emergencyContactName">Nombre</label>
+          <label htmlFor="emergencyContactName">Nombre del contacto</label>
           <input
             id="emergencyContactName"
             value={form.emergencyContactName}

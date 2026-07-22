@@ -2,6 +2,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { MembershipBadge, PaymentBadge } from '../../components/Badge';
 import { formatCurrency, formatDate } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 import type { MembershipPlan } from '../../data/types';
 
 const planFeatures: Record<MembershipPlan, string[]> = {
@@ -13,6 +14,7 @@ const planFeatures: Record<MembershipPlan, string[]> = {
 const planPrice: Record<MembershipPlan, number> = { Básico: 29, Pro: 49, Élite: 89 };
 
 export function MemberMembership() {
+  usePageTitle('Mi Membresía');
   const { session } = useAuth();
   const { members, payments } = useData();
 

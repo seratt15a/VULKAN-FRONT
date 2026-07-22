@@ -8,10 +8,12 @@ import { computeAchievements } from '../../lib/achievements';
 import { StatCard } from '../../components/StatCard';
 import { WeightChart } from '../../components/WeightChart';
 import { formatDate } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 type Tab = 'general' | 'progreso' | 'seguridad';
 
 export function MemberProfile() {
+  usePageTitle('Mi Perfil');
   const { session } = useAuth();
   const { members, trainers, updateMember } = useData();
   const { showToast } = useToast();
@@ -129,7 +131,7 @@ export function MemberProfile() {
               <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', margin: '10px 0 14px' }}>Contacto de emergencia</h3>
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="contactName">Nombre</label>
+                  <label htmlFor="contactName">Nombre del contacto</label>
                   <input id="contactName" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Nombre completo" />
                 </div>
                 <div className="form-group">

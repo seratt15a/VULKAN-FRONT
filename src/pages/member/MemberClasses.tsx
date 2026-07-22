@@ -4,10 +4,12 @@ import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import type { ClassCategory, GymClass } from '../../data/types';
 import { sortByDay } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 const categories: ('Todas' | ClassCategory)[] = ['Todas', 'Fuerza', 'HIIT', 'Hipertrofia', 'Movilidad', 'Cardio'];
 
 export function MemberClasses() {
+  usePageTitle('Clases');
   const { session } = useAuth();
   const { classes, trainers, toggleBooking } = useData();
   const { showToast } = useToast();

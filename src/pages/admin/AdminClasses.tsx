@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { sortByDay } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 import type { ClassCategory, GymClass } from '../../data/types';
 
 const categories: ClassCategory[] = ['Fuerza', 'HIIT', 'Hipertrofia', 'Movilidad', 'Cardio'];
@@ -23,6 +24,7 @@ type FormState = {
 type View = 'lista' | 'calendario';
 
 export function AdminClasses() {
+  usePageTitle('Clases');
   const { classes, trainers, addClass, updateClass, deleteClass } = useData();
   const { showToast } = useToast();
   const [editing, setEditing] = useState<GymClass | null>(null);

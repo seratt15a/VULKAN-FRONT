@@ -5,10 +5,12 @@ import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { DEMO_PASSWORD } from '../../lib/demoAccounts';
 import { StatCard } from '../../components/StatCard';
+import { usePageTitle } from '../../lib/usePageTitle';
 
 type Tab = 'general' | 'seguridad';
 
 export function TrainerProfile() {
+  usePageTitle('Mi Perfil');
   const { session } = useAuth();
   const { trainers, classes, updateTrainer } = useData();
   const { showToast } = useToast();

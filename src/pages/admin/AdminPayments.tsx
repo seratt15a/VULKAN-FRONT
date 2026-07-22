@@ -5,9 +5,11 @@ import { useToast } from '../../context/ToastContext';
 import { PaymentBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { formatCurrency, formatDate } from '../../lib/format';
+import { usePageTitle } from '../../lib/usePageTitle';
 import type { PaymentStatus } from '../../data/types';
 
 export function AdminPayments() {
+  usePageTitle('Pagos');
   const { payments, members, markPaymentStatus } = useData();
   const { showToast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'todos' | PaymentStatus>('todos');

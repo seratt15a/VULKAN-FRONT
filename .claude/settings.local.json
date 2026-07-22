@@ -12,7 +12,10 @@
       "Bash(npx tsc *)",
       "Bash(npx --yes http-server . -p 5556 -c-1)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5556/index.html)",
-      "Bash(pkill -f \"http-server.*5556\")"
+      "Bash(pkill -f \"http-server.*5556\")",
+      "Bash(npm run *)",
+      "Bash(npx vitest *)",
+      "Bash(npx oxlint *)"
     ]
   }
 }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { GymClass, Member, Payment, Trainer } from '../data/types';
 import { members as initialMembers } from '../data/members';
 import { trainers as initialTrainers } from '../data/trainers';
@@ -25,14 +25,35 @@ interface DataContextValue {
 
 const DataContext = createContext<DataContextValue | null>(null);
 
-let idCounter = 1000;
-const nextId = (prefix: string) => `${prefix}${idCounter++}`;
+const nextId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
+
+const STORAGE_KEY = 'vulkan.data';
+
+interface StoredData {
+  members: Member[];
+  trainers: Trainer[];
+  classes: GymClass[];
+  payments: Payment[];
+}
+
+function loadStored(): StoredData | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as StoredData) : null;
+  } catch {
+    return null;
+  }
+}
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [trainers, setTrainers] = useState<Trainer[]>(initialTrainers);
-  const [classes, setClasses] = useState<GymClass[]>(initialClasses);
-  const [payments, setPayments] = useState<Payment[]>(initialPayments);
+  const [members, setMembers] = useState<Member[]>(() => loadStored()?.members ?? initialMembers);
+  const [trainers, setTrainers] = useState<Trainer[]>(() => loadStored()?.trainers ?? initialTrainers);
+  const [classes, setClasses] = useState<GymClass[]>(() => loadStored()?.classes ?? initialClasses);
+  const [payments, setPayments] = useState<Payment[]>(() => loadStored()?.payments ?? initialPayments);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ members, trainers, classes, payments }));
+  }, [members, trainers, classes, payments]);
 
   const value = useMemo<DataContextValue>(
     () => ({
