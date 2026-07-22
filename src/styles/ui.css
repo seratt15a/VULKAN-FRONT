@@ -180,6 +180,8 @@
 .btn-sm { padding: 8px 16px; font-size: 0.74rem; }
 .btn-danger { background: transparent; border-color: rgba(232,17,42,0.4); color: var(--red); }
 .btn-danger:hover { background: var(--red-soft); }
+.btn-danger-solid { background: var(--red); color: #fff; }
+.btn-danger-solid:hover { background: var(--red-dark); }
 
 /* ============ Cards ============ */
 .card {
@@ -415,6 +417,32 @@ table.data-table {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 22px;
+}
+
+.confirm-dialog {
+  max-width: 380px;
+  text-align: center;
+}
+.confirm-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--red-soft);
+  color: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.confirm-dialog h3 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+}
+.confirm-dialog p {
+  color: var(--gray);
+  font-size: 0.9rem;
 }
 
 /* ============ Progress bar ============ */

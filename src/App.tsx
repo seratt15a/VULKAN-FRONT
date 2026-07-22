@@ -14,6 +14,7 @@ import { AdminTrainers } from './pages/admin/AdminTrainers';
 import { AdminPayments } from './pages/admin/AdminPayments';
 import { TrainerSchedule } from './pages/trainer/TrainerSchedule';
 import { TrainerStudents } from './pages/trainer/TrainerStudents';
+import { TrainerProfile } from './pages/trainer/TrainerProfile';
 
 export default function App() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
         >
           <Route path="/entrenador" element={<TrainerSchedule />} />
           <Route path="/entrenador/alumnos" element={<TrainerStudents />} />
+          <Route path="/entrenador/perfil" element={<TrainerProfile />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/login" replace />} />

@@ -2,7 +2,10 @@ import { Users, Wallet, Dumbbell, TrendingUp } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { MembershipBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
+import { BarChart } from '../../components/BarChart';
 import { formatCurrency, formatDate } from '../../lib/format';
+
+const MONTH_LABEL = new Intl.DateTimeFormat('es-ES', { month: 'short' });
 
 export function AdminDashboard() {
   const { members, classes, payments } = useData();
@@ -13,6 +16,26 @@ export function AdminDashboard() {
   const overdue = members.filter((m) => m.status === 'vencida');
 
   const recentPayments = [...payments].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
+
+  const revenueByMonth = new Map<string, number>();
+  payments
+    .filter((p) => p.status === 'pagado')
+    .forEach((p) => {
+      const key = p.date.slice(0, 7);
+      revenueByMonth.set(key, (revenueByMonth.get(key) ?? 0) + p.amount);
+    });
+  const revenueChartData = [...revenueByMonth.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .slice(-6)
+    .map(([key, value]) => ({
+      label: MONTH_LABEL.format(new Date(`${key}-01T00:00:00`)).replace('.', ''),
+      value,
+    }));
+
+  const occupancy = [...classes]
+    .map((c) => ({ ...c, pct: Math.round((c.bookedIds.length / c.capacity) * 100) }))
+    .sort((a, b) => b.pct - a.pct)
+    .slice(0, 5);
 
   return (
     <>
@@ -28,6 +51,32 @@ export function AdminDashboard() {
         <StatCard icon={<Wallet size={20} />} label="Ingresos mensuales estimados" value={formatCurrency(monthlyRevenue)} />
         <StatCard icon={<Dumbbell size={20} />} label="Reservas de clases" value={totalBookings} />
         <StatCard icon={<TrendingUp size={20} />} label="Membresías vencidas" value={overdue.length} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, alignItems: 'start', marginBottom: 20 }}>
+        <div className="card">
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', marginBottom: 16 }}>Ingresos por mes</h2>
+          <BarChart data={revenueChartData} formatValue={(v) => formatCurrency(v)} />
+        </div>
+
+        <div className="card">
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', marginBottom: 16 }}>Ocupación de clases</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {occupancy.map((c) => (
+              <div key={c.id}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: 6 }}>
+                  <span>{c.name}</span>
+                  <span style={{ color: 'var(--gray-dim)' }}>
+                    {c.bookedIds.length}/{c.capacity}
+                  </span>
+                </div>
+                <div className="progress-bar">
+                  <div className="progress-bar-fill" style={{ width: `${c.pct}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, alignItems: 'start' }}>

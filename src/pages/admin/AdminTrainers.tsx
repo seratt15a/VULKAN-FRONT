@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import type { Trainer } from '../../data/types';
 
 type FormState = { name: string; email: string; specialty: string; bio: string };
@@ -14,6 +15,7 @@ export function AdminTrainers() {
   const [editing, setEditing] = useState<Trainer | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [pendingDelete, setPendingDelete] = useState<Trainer | null>(null);
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -46,10 +48,14 @@ export function AdminTrainers() {
     closeModals();
   };
 
-  const handleDelete = (trainer: Trainer) => {
-    deleteTrainer(trainer.id);
-    showToast(`Se eliminó a ${trainer.name}.`, 'info');
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteTrainer(pendingDelete.id);
+    showToast(`Se eliminó a ${pendingDelete.name}.`, 'info');
+    setPendingDelete(null);
   };
+
+  const pendingDeleteClassCount = pendingDelete ? classes.filter((c) => c.trainerId === pendingDelete.id).length : 0;
 
   return (
     <>
@@ -94,7 +100,7 @@ export function AdminTrainers() {
                     <button className="icon-btn" onClick={() => openEdit(t)} aria-label="Editar">
                       <Pencil />
                     </button>
-                    <button className="icon-btn" onClick={() => handleDelete(t)} aria-label="Eliminar">
+                    <button className="icon-btn" onClick={() => setPendingDelete(t)} aria-label="Eliminar">
                       <Trash2 />
                     </button>
                   </div>
@@ -134,6 +140,19 @@ export function AdminTrainers() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Eliminar entrenador"
+          message={
+            pendingDeleteClassCount > 0
+              ? `${pendingDelete.name} tiene ${pendingDeleteClassCount} clase(s) asignada(s). Si lo eliminas, deberás reasignarlas a otro entrenador.`
+              : `¿Seguro que quieres eliminar a ${pendingDelete.name}? Esta acción no se puede deshacer.`
+          }
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </>
   );

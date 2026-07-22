@@ -9,7 +9,10 @@
       "Bash(npx --yes create-vite@latest gymfront-scaffold --template react-ts)",
       "Bash(rm -rf \"/c/Users/USER/AppData/Local/Temp/claude/C--Users-USER-Downloads-Gym-Front/36e9f79c-bb58-4fdb-84a5-895600427ab6/scratchpad/gymfront-scaffold\")",
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npx --yes http-server . -p 5556 -c-1)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:5556/index.html)",
+      "Bash(pkill -f \"http-server.*5556\")"
     ]
   }
 }

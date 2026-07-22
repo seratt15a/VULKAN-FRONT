@@ -36,5 +36,6 @@ export const navByRole: Record<Role, NavItem[]> = {
   trainer: [
     { to: '/entrenador', label: 'Mi Horario', icon: CalendarDays, end: true },
     { to: '/entrenador/alumnos', label: 'Mis Alumnos', icon: ClipboardList },
+    { to: '/entrenador/perfil', label: 'Perfil', icon: User },
   ],
 };

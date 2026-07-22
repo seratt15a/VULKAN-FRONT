@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MembershipBadge } from '../../components/Badge';
 import { formatDate } from '../../lib/format';
 import type { Member, MembershipPlan, MembershipStatus } from '../../data/types';
@@ -33,6 +34,7 @@ export function AdminMembers() {
   const [editing, setEditing] = useState<Member | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [pendingDelete, setPendingDelete] = useState<Member | null>(null);
 
   const filtered = members.filter((m) => {
     const matchesQuery = m.name.toLowerCase().includes(query.toLowerCase()) || m.email.toLowerCase().includes(query.toLowerCase());
@@ -78,9 +80,11 @@ export function AdminMembers() {
     closeModals();
   };
 
-  const handleDelete = (member: Member) => {
-    deleteMember(member.id);
-    showToast(`Se eliminó a ${member.name}.`, 'info');
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteMember(pendingDelete.id);
+    showToast(`Se eliminó a ${pendingDelete.name}.`, 'info');
+    setPendingDelete(null);
   };
 
   const renderForm = () => (
@@ -189,7 +193,7 @@ export function AdminMembers() {
                     <button className="icon-btn" onClick={() => openEdit(m)} aria-label="Editar">
                       <Pencil />
                     </button>
-                    <button className="icon-btn" onClick={() => handleDelete(m)} aria-label="Eliminar">
+                    <button className="icon-btn" onClick={() => setPendingDelete(m)} aria-label="Eliminar">
                       <Trash2 />
                     </button>
                   </div>
@@ -211,6 +215,15 @@ export function AdminMembers() {
         <Modal title={editing ? 'Editar miembro' : 'Nuevo miembro'} onClose={closeModals}>
           {renderForm()}
         </Modal>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Eliminar miembro"
+          message={`¿Seguro que quieres eliminar a ${pendingDelete.name}? Esta acción no se puede deshacer.`}
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </>
   );

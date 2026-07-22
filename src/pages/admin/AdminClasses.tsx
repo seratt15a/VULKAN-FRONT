@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { sortByDay } from '../../lib/format';
 import type { ClassCategory, GymClass } from '../../data/types';
 
@@ -24,6 +25,7 @@ export function AdminClasses() {
   const { showToast } = useToast();
   const [editing, setEditing] = useState<GymClass | null>(null);
   const [creating, setCreating] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<GymClass | null>(null);
 
   const emptyForm: FormState = {
     name: '',
@@ -63,9 +65,11 @@ export function AdminClasses() {
     closeModals();
   };
 
-  const handleDelete = (gymClass: GymClass) => {
-    deleteClass(gymClass.id);
-    showToast(`Se eliminó la clase "${gymClass.name}".`, 'info');
+  const confirmDelete = () => {
+    if (!pendingDelete) return;
+    deleteClass(pendingDelete.id);
+    showToast(`Se eliminó la clase "${pendingDelete.name}".`, 'info');
+    setPendingDelete(null);
   };
 
   const sorted = sortByDay(classes);
@@ -110,7 +114,7 @@ export function AdminClasses() {
                       <button className="icon-btn" onClick={() => openEdit(c)} aria-label="Editar">
                         <Pencil />
                       </button>
-                      <button className="icon-btn" onClick={() => handleDelete(c)} aria-label="Eliminar">
+                      <button className="icon-btn" onClick={() => setPendingDelete(c)} aria-label="Eliminar">
                         <Trash2 />
                       </button>
                     </div>
@@ -194,6 +198,15 @@ export function AdminClasses() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Eliminar clase"
+          message={`¿Seguro que quieres eliminar "${pendingDelete.name}"? Esta acción no se puede deshacer.`}
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
       )}
     </>
   );
