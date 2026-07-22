@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
 import type { Role } from '../data/types';
-import { members, trainers } from '../data';
+import { DEMO_PASSWORD } from '../lib/demoAccounts';
 import { useAuth } from '../context/AuthContext';
 
 const homeByRole: Record<Role, string> = {
@@ -11,22 +11,21 @@ const homeByRole: Record<Role, string> = {
 };
 
 export function Login() {
-  const { session, loginAsMember, loginAsTrainer, loginAsAdmin } = useAuth();
-  const [role, setRole] = useState<Role>('member');
-  const [selectedId, setSelectedId] = useState<string>(members[0].id);
+  const { session, login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   if (session) return <Navigate to={homeByRole[session.role]} replace />;
 
-  const handleRoleChange = (next: Role) => {
-    setRole(next);
-    if (next === 'member') setSelectedId(members[0].id);
-    if (next === 'trainer') setSelectedId(trainers[0].id);
-  };
-
-  const handleEnter = () => {
-    if (role === 'member') loginAsMember(selectedId);
-    else if (role === 'trainer') loginAsTrainer(selectedId);
-    else loginAsAdmin();
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const result = await login(email, password);
+    setLoading(false);
+    if (!result.ok) setError(result.error ?? 'No se pudo iniciar sesión.');
   };
 
   return (
@@ -35,65 +34,46 @@ export function Login() {
         <div className="login-logo">
           VUL<span>KAN</span>
         </div>
-        <p className="login-sub">Inicia sesión para continuar (demo, sin backend aún)</p>
+        <p className="login-sub">Inicia sesión para continuar</p>
 
-        <div className="role-tabs">
-          <button className={`role-tab ${role === 'member' ? 'active' : ''}`} onClick={() => handleRoleChange('member')}>
-            Miembro
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Correo</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="username"
+              placeholder="tu@correo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {error && <p style={{ color: 'var(--red)', fontSize: '0.85rem', marginBottom: 16 }}>{error}</p>}
+
+          <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%' }}>
+            {loading ? 'Entrando…' : 'Iniciar sesión'}
           </button>
-          <button className={`role-tab ${role === 'trainer' ? 'active' : ''}`} onClick={() => handleRoleChange('trainer')}>
-            Entrenador
-          </button>
-          <button className={`role-tab ${role === 'admin' ? 'active' : ''}`} onClick={() => handleRoleChange('admin')}>
-            Admin
-          </button>
+        </form>
+
+        <div className="login-demo-hint">
+          <strong>Cuentas de prueba</strong> (aún sin backend real)
+          <p>admin@vulkangym.com · andres.reyes@gmail.com · marco.diaz@vulkangym.com</p>
+          <p>Contraseña para todas: <code>{DEMO_PASSWORD}</code></p>
         </div>
-
-        {role === 'member' && (
-          <div className="login-select-list">
-            {members.map((m) => (
-              <div
-                key={m.id}
-                className={`login-select-item ${selectedId === m.id ? 'selected' : ''}`}
-                onClick={() => setSelectedId(m.id)}
-              >
-                <img src={m.avatar} alt={m.name} />
-                <div>
-                  <strong>{m.name}</strong>
-                  <span>Plan {m.plan}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {role === 'trainer' && (
-          <div className="login-select-list">
-            {trainers.map((t) => (
-              <div
-                key={t.id}
-                className={`login-select-item ${selectedId === t.id ? 'selected' : ''}`}
-                onClick={() => setSelectedId(t.id)}
-              >
-                <img src={t.avatar} alt={t.name} />
-                <div>
-                  <strong>{t.name}</strong>
-                  <span>{t.specialty}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {role === 'admin' && (
-          <p className="login-sub" style={{ marginBottom: 24 }}>
-            Entrarás como personal administrativo de VULKAN.
-          </p>
-        )}
-
-        <button className="btn btn-primary btn-block" style={{ width: '100%' }} onClick={handleEnter}>
-          Entrar
-        </button>
       </div>
     </div>
   );

@@ -528,30 +528,31 @@ table.data-table {
   transition: all var(--transition);
 }
 .role-tab.active { background: var(--red); color: #fff; }
-.login-select-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
-  max-height: 260px;
-  overflow-y: auto;
+
+.login-demo-hint {
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--gray-dim);
+  text-align: center;
+  line-height: 1.7;
 }
-.login-select-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all var(--transition);
+.login-demo-hint strong {
+  display: block;
+  color: var(--gray);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.login-demo-hint code {
   background: var(--black-soft);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--white);
 }
-.login-select-item:hover { border-color: var(--red); }
-.login-select-item.selected { border-color: var(--red); background: var(--red-soft); }
-.login-select-item img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
-.login-select-item strong { font-size: 0.9rem; display: block; }
-.login-select-item span { font-size: 0.76rem; color: var(--gray-dim); }
 
 /* ============ Empty state ============ */
 .empty-state {
