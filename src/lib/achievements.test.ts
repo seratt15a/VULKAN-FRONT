@@ -19,6 +19,9 @@ function makeMember(overrides: Partial<Member> = {}): Member {
     weightGoalKg: 80,
     weightHistory: [],
     emergencyContact: { name: '', phone: '', relationship: '' },
+    bodyMeasurements: [],
+    progressPhotos: [],
+    freezeRequest: null,
     ...overrides,
   };
 }

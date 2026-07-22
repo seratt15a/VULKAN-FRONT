@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Snowflake, Check, X } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -26,7 +26,7 @@ type FormState = {
 
 export function AdminMembers() {
   usePageTitle('Miembros');
-  const { members, trainers, addMember, updateMember, deleteMember } = useData();
+  const { members, trainers, addMember, updateMember, deleteMember, resolveFreezeRequest } = useData();
   const { showToast } = useToast();
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todas' | MembershipStatus>('todas');
@@ -102,6 +102,9 @@ export function AdminMembers() {
         checkIns: 0,
         currentStreakDays: 0,
         weightHistory: [],
+        bodyMeasurements: [],
+        progressPhotos: [],
+        freezeRequest: null,
       });
       showToast(`${form.name} fue agregado como nuevo miembro.`, 'success');
     }
@@ -113,6 +116,14 @@ export function AdminMembers() {
     deleteMember(pendingDelete.id);
     showToast(`Se eliminó a ${pendingDelete.name}.`, 'info');
     setPendingDelete(null);
+  };
+
+  const handleResolveFreeze = (member: Member, approve: boolean) => {
+    resolveFreezeRequest(member.id, approve);
+    showToast(
+      approve ? `Se pausó la membresía de ${member.name}.` : `Se rechazó la solicitud de pausa de ${member.name}.`,
+      approve ? 'success' : 'info',
+    );
   };
 
   const renderForm = () => (
@@ -265,11 +276,28 @@ export function AdminMembers() {
                   </div>
                 </td>
                 <td>{m.plan}</td>
-                <td><MembershipBadge status={m.status} /></td>
+                <td>
+                  <MembershipBadge status={m.status} />
+                  {m.freezeRequest && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--amber)', fontSize: '0.74rem', marginTop: 6 }}>
+                      <Snowflake size={12} /> Solicitó pausa
+                    </div>
+                  )}
+                </td>
                 <td>{formatDate(m.nextPaymentDate)}</td>
                 <td>{m.checkIns}</td>
                 <td>
                   <div className="table-actions">
+                    {m.freezeRequest && (
+                      <>
+                        <button className="icon-btn" onClick={() => handleResolveFreeze(m, true)} aria-label="Aprobar pausa" title="Aprobar pausa">
+                          <Check />
+                        </button>
+                        <button className="icon-btn" onClick={() => handleResolveFreeze(m, false)} aria-label="Rechazar pausa" title="Rechazar pausa">
+                          <X />
+                        </button>
+                      </>
+                    )}
                     <button className="icon-btn" onClick={() => openEdit(m)} aria-label="Editar">
                       <Pencil />
                     </button>

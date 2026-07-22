@@ -7,6 +7,7 @@ import { homeByRole } from './lib/roleHome';
 import { Login } from './pages/Login';
 import { MemberDashboard } from './pages/member/MemberDashboard';
 import { MemberClasses } from './pages/member/MemberClasses';
+import { MemberRoutine } from './pages/member/MemberRoutine';
 import { MemberMembership } from './pages/member/MemberMembership';
 import { MemberProfile } from './pages/member/MemberProfile';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -14,6 +15,7 @@ import { AdminMembers } from './pages/admin/AdminMembers';
 import { AdminClasses } from './pages/admin/AdminClasses';
 import { AdminTrainers } from './pages/admin/AdminTrainers';
 import { AdminPayments } from './pages/admin/AdminPayments';
+import { AdminPackages } from './pages/admin/AdminPackages';
 import { TrainerSchedule } from './pages/trainer/TrainerSchedule';
 import { TrainerStudents } from './pages/trainer/TrainerStudents';
 import { TrainerProfile } from './pages/trainer/TrainerProfile';
@@ -39,6 +41,7 @@ export default function App() {
         >
           <Route path="/" element={<MemberDashboard />} />
           <Route path="/clases" element={<MemberClasses />} />
+          <Route path="/rutina" element={<MemberRoutine />} />
           <Route path="/membresia" element={<MemberMembership />} />
           <Route path="/perfil" element={<MemberProfile />} />
         </Route>
@@ -55,6 +58,7 @@ export default function App() {
           <Route path="/admin/clases" element={<AdminClasses />} />
           <Route path="/admin/entrenadores" element={<AdminTrainers />} />
           <Route path="/admin/pagos" element={<AdminPayments />} />
+          <Route path="/admin/paquetes" element={<AdminPackages />} />
         </Route>
 
         <Route

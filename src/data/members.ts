@@ -24,6 +24,14 @@ export const members: Member[] = [
       { date: '2026-07-01', weightKg: 85 },
     ],
     emergencyContact: { name: 'Marta Reyes', phone: '+52 55 2233 4455', relationship: 'Esposa' },
+    bodyMeasurements: [
+      { date: '2026-05-01', bodyFatPercent: 24, waistCm: 95, chestCm: 104, armCm: 35 },
+      { date: '2026-07-01', bodyFatPercent: 21, waistCm: 91, chestCm: 105, armCm: 36 },
+    ],
+    progressPhotos: [
+      { date: '2026-07-01', url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=400&q=80', note: 'Progreso mes 5' },
+    ],
+    freezeRequest: null,
   },
   {
     id: 'm2',
@@ -48,6 +56,12 @@ export const members: Member[] = [
       { date: '2026-07-01', weightKg: 59 },
     ],
     emergencyContact: { name: 'Diego Méndez', phone: '+52 55 3344 5566', relationship: 'Hermano' },
+    bodyMeasurements: [
+      { date: '2026-05-01', bodyFatPercent: 22, waistCm: 70, chestCm: 88, armCm: 27 },
+      { date: '2026-07-01', bodyFatPercent: 20, waistCm: 68, chestCm: 90, armCm: 28 },
+    ],
+    progressPhotos: [],
+    freezeRequest: null,
   },
   {
     id: 'm3',
@@ -72,6 +86,9 @@ export const members: Member[] = [
       { date: '2026-07-01', weightKg: 77 },
     ],
     emergencyContact: { name: 'Ana Salinas', phone: '+52 55 4455 6677', relationship: 'Esposa' },
+    bodyMeasurements: [],
+    progressPhotos: [],
+    freezeRequest: null,
   },
   {
     id: 'm4',
@@ -96,6 +113,9 @@ export const members: Member[] = [
       { date: '2026-07-01', weightKg: 71 },
     ],
     emergencyContact: { name: 'Luis Navarro', phone: '+52 55 5566 7788', relationship: 'Padre' },
+    bodyMeasurements: [],
+    progressPhotos: [],
+    freezeRequest: null,
   },
   {
     id: 'm5',
@@ -117,6 +137,9 @@ export const members: Member[] = [
       { date: '2026-07-01', weightKg: 84.5 },
     ],
     emergencyContact: { name: 'Elena Palma', phone: '+52 55 6677 8899', relationship: 'Madre' },
+    bodyMeasurements: [],
+    progressPhotos: [],
+    freezeRequest: { reason: 'Viaje de trabajo, vuelvo en 2 semanas.', requestedAt: '2026-07-20' },
   },
   {
     id: 'm6',
@@ -141,5 +164,13 @@ export const members: Member[] = [
       { date: '2026-07-01', weightKg: 58.4 },
     ],
     emergencyContact: { name: 'Marcos Cruz', phone: '+52 55 7788 9900', relationship: 'Esposo' },
+    bodyMeasurements: [
+      { date: '2026-05-01', bodyFatPercent: 19, waistCm: 65, chestCm: 86, armCm: 26 },
+      { date: '2026-07-01', bodyFatPercent: 18, waistCm: 64, chestCm: 87, armCm: 27 },
+    ],
+    progressPhotos: [
+      { date: '2026-06-01', url: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=400&q=80' },
+    ],
+    freezeRequest: null,
   },
 ];

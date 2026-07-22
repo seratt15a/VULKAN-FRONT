@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Flame, Target, Weight, CalendarCheck, Trophy, ShieldCheck } from 'lucide-react';
+import { Flame, Target, Weight, CalendarCheck, Trophy, ShieldCheck, Ruler, Percent, Camera, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
@@ -15,7 +15,7 @@ type Tab = 'general' | 'progreso' | 'seguridad';
 export function MemberProfile() {
   usePageTitle('Mi Perfil');
   const { session } = useAuth();
-  const { members, trainers, updateMember } = useData();
+  const { members, trainers, updateMember, addProgressPhoto } = useData();
   const { showToast } = useToast();
   const member = members.find((m) => m.id === session?.memberId);
   const trainer = trainers.find((t) => t.id === member?.trainerId);
@@ -34,7 +34,19 @@ export function MemberProfile() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [photoNote, setPhotoNote] = useState('');
+
   if (!member) return null;
+
+  const handleAddPhoto = (e: FormEvent) => {
+    e.preventDefault();
+    if (!photoUrl.trim()) return;
+    addProgressPhoto(member.id, { date: new Date().toISOString().slice(0, 10), url: photoUrl.trim(), note: photoNote.trim() || undefined });
+    setPhotoUrl('');
+    setPhotoNote('');
+    showToast('Foto de progreso agregada.', 'success');
+  };
 
   const handleSaveGeneral = (e: FormEvent) => {
     e.preventDefault();
@@ -204,7 +216,7 @@ export function MemberProfile() {
               Logros <span style={{ color: 'var(--gray-dim)', fontFamily: 'var(--font-body)', fontSize: '0.85rem' }}>({unlockedCount}/{achievements.length})</span>
             </h3>
           </div>
-          <div className="achievements-grid">
+          <div className="achievements-grid" style={{ marginBottom: 32 }}>
             {achievements.map((a) => (
               <div key={a.id} className={`achievement-card ${a.unlocked ? 'unlocked' : ''}`}>
                 <span className="achievement-icon">
@@ -217,6 +229,85 @@ export function MemberProfile() {
               </div>
             ))}
           </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <Ruler size={18} color="var(--red)" />
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem' }}>Medidas corporales</h3>
+          </div>
+          {member.bodyMeasurements.length > 0 ? (
+            <>
+              {(() => {
+                const latest = member.bodyMeasurements.at(-1)!;
+                return (
+                  <div className="stat-grid">
+                    <StatCard icon={<Percent size={20} />} label="% Grasa corporal" value={`${latest.bodyFatPercent}%`} />
+                    <StatCard icon={<Ruler size={20} />} label="Cintura" value={`${latest.waistCm} cm`} />
+                    <StatCard icon={<Ruler size={20} />} label="Pecho" value={`${latest.chestCm} cm`} />
+                    <StatCard icon={<Ruler size={20} />} label="Brazo" value={`${latest.armCm} cm`} />
+                  </div>
+                );
+              })()}
+              <div className="table-wrap" style={{ marginBottom: 32 }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>% Grasa</th>
+                      <th>Cintura</th>
+                      <th>Pecho</th>
+                      <th>Brazo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...member.bodyMeasurements].reverse().map((entry) => (
+                      <tr key={entry.date}>
+                        <td>{formatDate(entry.date)}</td>
+                        <td>{entry.bodyFatPercent}%</td>
+                        <td>{entry.waistCm} cm</td>
+                        <td>{entry.chestCm} cm</td>
+                        <td>{entry.armCm} cm</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <p style={{ color: 'var(--gray-dim)', fontSize: '0.88rem', marginBottom: 32 }}>
+              Tu entrenador aún no ha registrado mediciones corporales.
+            </p>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <Camera size={18} color="var(--red)" />
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem' }}>Fotos de progreso</h3>
+          </div>
+          {member.progressPhotos.length > 0 && (
+            <div className="photo-grid">
+              {[...member.progressPhotos].reverse().map((photo) => (
+                <div key={photo.url + photo.date} className="progress-photo-card">
+                  <img src={photo.url} alt={photo.note ?? 'Foto de progreso'} />
+                  <div className="progress-photo-caption">
+                    <span>{formatDate(photo.date)}</span>
+                    {photo.note && <p>{photo.note}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <form onSubmit={handleAddPhoto} className="card" style={{ maxWidth: 460, marginTop: 16 }}>
+            <div className="form-group">
+              <label htmlFor="photoUrl">URL de la foto</label>
+              <input id="photoUrl" value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://..." required />
+            </div>
+            <div className="form-group">
+              <label htmlFor="photoNote">Nota (opcional)</label>
+              <input id="photoNote" value={photoNote} onChange={(e) => setPhotoNote(e.target.value)} placeholder="Ej. Mes 3 de entrenamiento" />
+            </div>
+            <button className="btn btn-outline btn-sm" type="submit">
+              <Plus size={14} /> Agregar foto
+            </button>
+          </form>
         </>
       )}
 

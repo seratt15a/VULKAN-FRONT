@@ -15,6 +15,25 @@ export interface EmergencyContact {
   relationship: string;
 }
 
+export interface BodyMeasurement {
+  date: string;
+  bodyFatPercent: number;
+  waistCm: number;
+  chestCm: number;
+  armCm: number;
+}
+
+export interface ProgressPhoto {
+  date: string;
+  url: string;
+  note?: string;
+}
+
+export interface FreezeRequest {
+  reason: string;
+  requestedAt: string;
+}
+
 export interface Member {
   id: string;
   name: string;
@@ -31,6 +50,9 @@ export interface Member {
   weightGoalKg: number;
   weightHistory: WeightEntry[];
   emergencyContact: EmergencyContact;
+  bodyMeasurements: BodyMeasurement[];
+  progressPhotos: ProgressPhoto[];
+  freezeRequest: FreezeRequest | null;
 }
 
 export interface Trainer {
@@ -55,6 +77,8 @@ export interface GymClass {
   durationMin: number;
   capacity: number;
   bookedIds: string[];
+  waitlistIds: string[];
+  attendedIds: string[];
 }
 
 export type PaymentStatus = 'pagado' | 'pendiente' | 'vencido';
@@ -66,4 +90,29 @@ export interface Payment {
   date: string;
   plan: MembershipPlan;
   status: PaymentStatus;
+}
+
+export interface Exercise {
+  name: string;
+  sets: number;
+  reps: string;
+  notes?: string;
+}
+
+export interface WorkoutPlan {
+  id: string;
+  memberId: string;
+  trainerId: string;
+  title: string;
+  createdAt: string;
+  exercises: Exercise[];
+}
+
+export interface SessionPackage {
+  id: string;
+  memberId: string;
+  totalSessions: number;
+  usedSessions: number;
+  purchaseDate: string;
+  price: number;
 }

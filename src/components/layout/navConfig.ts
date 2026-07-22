@@ -9,6 +9,8 @@ import {
   Wallet,
   CalendarDays,
   ClipboardList,
+  ListChecks,
+  Package,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -23,6 +25,7 @@ export const navByRole: Record<Role, NavItem[]> = {
   member: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/clases', label: 'Clases', icon: Dumbbell },
+    { to: '/rutina', label: 'Mi Rutina', icon: ListChecks },
     { to: '/membresia', label: 'Mi Membresía', icon: CreditCard },
     { to: '/perfil', label: 'Perfil', icon: User },
   ],
@@ -32,6 +35,7 @@ export const navByRole: Record<Role, NavItem[]> = {
     { to: '/admin/clases', label: 'Clases', icon: Dumbbell },
     { to: '/admin/entrenadores', label: 'Entrenadores', icon: UserCog },
     { to: '/admin/pagos', label: 'Pagos', icon: Wallet },
+    { to: '/admin/paquetes', label: 'Paquetes', icon: Package },
   ],
   trainer: [
     { to: '/entrenador', label: 'Mi Horario', icon: CalendarDays, end: true },

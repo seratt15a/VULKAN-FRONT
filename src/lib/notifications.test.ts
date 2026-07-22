@@ -19,6 +19,9 @@ function makeMember(overrides: Partial<Member> = {}): Member {
     weightGoalKg: 80,
     weightHistory: [],
     emergencyContact: { name: '', phone: '', relationship: '' },
+    bodyMeasurements: [],
+    progressPhotos: [],
+    freezeRequest: null,
     ...overrides,
   };
 }
@@ -34,6 +37,8 @@ function makeClass(overrides: Partial<GymClass> = {}): GymClass {
     durationMin: 60,
     capacity: 10,
     bookedIds: [],
+    waitlistIds: [],
+    attendedIds: [],
     ...overrides,
   };
 }

@@ -54,6 +54,10 @@ export function getNotifications(session: Session | null, data: NotificationData
         }),
       );
 
+    data.members
+      .filter((m) => m.freezeRequest)
+      .forEach((m) => notifications.push({ id: `freeze-${m.id}`, message: `${m.name} solicitó pausar su membresía.`, severity: 'warning' }));
+
     return notifications;
   }
 

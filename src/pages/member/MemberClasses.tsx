@@ -11,7 +11,7 @@ const categories: ('Todas' | ClassCategory)[] = ['Todas', 'Fuerza', 'HIIT', 'Hip
 export function MemberClasses() {
   usePageTitle('Clases');
   const { session } = useAuth();
-  const { classes, trainers, toggleBooking } = useData();
+  const { classes, trainers, toggleBooking, joinWaitlist, leaveWaitlist } = useData();
   const { showToast } = useToast();
   const [filter, setFilter] = useState<'Todas' | ClassCategory>('Todas');
 
@@ -25,6 +25,18 @@ export function MemberClasses() {
       alreadyBooked ? `Reserva cancelada en ${gymClass.name}.` : `¡Reserva confirmada en ${gymClass.name}!`,
       alreadyBooked ? 'info' : 'success',
     );
+  };
+
+  const handleJoinWaitlist = (gymClass: GymClass) => {
+    if (!memberId) return;
+    joinWaitlist(gymClass.id, memberId);
+    showToast(`Te anotamos en la lista de espera de ${gymClass.name}.`, 'info');
+  };
+
+  const handleLeaveWaitlist = (gymClass: GymClass) => {
+    if (!memberId) return;
+    leaveWaitlist(gymClass.id, memberId);
+    showToast(`Saliste de la lista de espera de ${gymClass.name}.`, 'info');
   };
 
   return (
@@ -50,6 +62,8 @@ export function MemberClasses() {
           const booked = memberId ? c.bookedIds.includes(memberId) : false;
           const isFull = c.bookedIds.length >= c.capacity;
           const pct = Math.min(100, Math.round((c.bookedIds.length / c.capacity) * 100));
+          const waitlistPosition = memberId ? c.waitlistIds.indexOf(memberId) : -1;
+          const onWaitlist = waitlistPosition !== -1;
 
           return (
             <div key={c.id} className="gym-class-card">
@@ -70,13 +84,26 @@ export function MemberClasses() {
                   <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
                 </div>
               </div>
-              <button
-                className={`btn ${booked ? 'btn-outline' : 'btn-primary'}`}
-                disabled={!booked && isFull}
-                onClick={() => handleToggle(c, booked)}
-              >
-                {booked ? 'Cancelar reserva' : isFull ? 'Sin cupo' : 'Reservar'}
-              </button>
+
+              {onWaitlist && (
+                <p style={{ color: 'var(--amber)', fontSize: '0.8rem' }}>
+                  En lista de espera (posición {waitlistPosition + 1})
+                </p>
+              )}
+
+              {booked || !isFull ? (
+                <button className={`btn ${booked ? 'btn-outline' : 'btn-primary'}`} onClick={() => handleToggle(c, booked)}>
+                  {booked ? 'Cancelar reserva' : 'Reservar'}
+                </button>
+              ) : onWaitlist ? (
+                <button className="btn btn-outline" onClick={() => handleLeaveWaitlist(c)}>
+                  Salir de la lista de espera
+                </button>
+              ) : (
+                <button className="btn btn-outline" onClick={() => handleJoinWaitlist(c)}>
+                  Unirse a la lista de espera
+                </button>
+              )}
             </div>
           );
         })}

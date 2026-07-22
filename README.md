@@ -33,17 +33,23 @@ No hay backend real todavía: el login valida contra `src/lib/demoAccounts.ts`. 
 - `npm run lint` — oxlint
 - `npm test` — pruebas (Vitest)
 
+## Funcionalidad
+
+- **Miembro**: reservar clases (con lista de espera cuando están llenas), ver su rutina asignada, gestionar membresía (cambiar plan, solicitar pausa, ver paquetes de sesiones), perfil con progreso físico (peso, medidas, fotos, logros).
+- **Entrenador**: horario, marcar asistencia real de sus alumnos, asignarles rutinas de ejercicios, registrar mediciones corporales.
+- **Administrador**: dashboard con gráficas, CRUD de miembros/clases/entrenadores, vista calendario de clases, pagos, venta y seguimiento de paquetes de sesiones, aprobar/rechazar solicitudes de pausa.
+
 ## Estructura
 
 ```
 src/
   components/     UI compartida (Modal, ConfirmDialog, Badge, StatCard, charts...)
   context/        AuthContext, DataContext, ToastContext — estado global
-  data/           Tipos y datos mock (members, trainers, classes, payments)
+  data/           Tipos y datos mock (members, trainers, classes, payments, workoutPlans, sessionPackages)
   lib/            Utilidades: formato, logros, notificaciones, cuentas demo
   pages/
-    admin/        Dashboard, Miembros, Clases, Entrenadores, Pagos
-    member/       Dashboard, Clases, Membresía, Perfil
+    admin/        Dashboard, Miembros, Clases, Entrenadores, Pagos, Paquetes
+    member/       Dashboard, Clases, Mi Rutina, Membresía, Perfil
     trainer/      Horario, Alumnos, Perfil
 ```
 
