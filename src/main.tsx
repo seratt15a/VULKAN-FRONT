@@ -6,14 +6,17 @@ import './styles/ui.css';
 import App from './App.tsx';
 import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
+import { ToastProvider } from './context/ToastContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <DataProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ToastProvider>
       </DataProvider>
     </BrowserRouter>
   </StrictMode>,

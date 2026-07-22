@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle2, Wallet, Clock, AlertTriangle } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { useToast } from '../../context/ToastContext';
 import { PaymentBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { formatCurrency, formatDate } from '../../lib/format';
@@ -8,7 +9,13 @@ import type { PaymentStatus } from '../../data/types';
 
 export function AdminPayments() {
   const { payments, members, markPaymentStatus } = useData();
+  const { showToast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'todos' | PaymentStatus>('todos');
+
+  const handleMarkPaid = (paymentId: string, memberName: string) => {
+    markPaymentStatus(paymentId, 'pagado');
+    showToast(`Pago de ${memberName} marcado como pagado.`, 'success');
+  };
 
   const totalPaid = payments.filter((p) => p.status === 'pagado').reduce((s, p) => s + p.amount, 0);
   const pending = payments.filter((p) => p.status === 'pendiente');
@@ -75,7 +82,7 @@ export function AdminPayments() {
                   <td><PaymentBadge status={p.status} /></td>
                   <td>
                     {p.status !== 'pagado' && (
-                      <button className="btn btn-outline btn-sm" onClick={() => markPaymentStatus(p.id, 'pagado')}>
+                      <button className="btn btn-outline btn-sm" onClick={() => handleMarkPaid(p.id, member?.name ?? 'miembro')}>
                         <CheckCircle2 size={14} /> Marcar pagado
                       </button>
                     )}

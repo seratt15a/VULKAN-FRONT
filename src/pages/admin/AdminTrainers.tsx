@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import type { Trainer } from '../../data/types';
 
@@ -9,6 +10,7 @@ const emptyForm: FormState = { name: '', email: '', specialty: '', bio: '' };
 
 export function AdminTrainers() {
   const { trainers, classes, addTrainer, updateTrainer, deleteTrainer } = useData();
+  const { showToast } = useToast();
   const [editing, setEditing] = useState<Trainer | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -32,14 +34,21 @@ export function AdminTrainers() {
     e.preventDefault();
     if (editing) {
       updateTrainer(editing.id, form);
+      showToast(`Se actualizó a ${form.name}.`, 'success');
     } else {
       addTrainer({
         ...form,
         avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(form.name)}&backgroundColor=e8112a`,
         activeStudents: 0,
       });
+      showToast(`${form.name} se unió al equipo de entrenadores.`, 'success');
     }
     closeModals();
+  };
+
+  const handleDelete = (trainer: Trainer) => {
+    deleteTrainer(trainer.id);
+    showToast(`Se eliminó a ${trainer.name}.`, 'info');
   };
 
   return (
@@ -85,7 +94,7 @@ export function AdminTrainers() {
                     <button className="icon-btn" onClick={() => openEdit(t)} aria-label="Editar">
                       <Pencil />
                     </button>
-                    <button className="icon-btn" onClick={() => deleteTrainer(t.id)} aria-label="Eliminar">
+                    <button className="icon-btn" onClick={() => handleDelete(t)} aria-label="Eliminar">
                       <Trash2 />
                     </button>
                   </div>

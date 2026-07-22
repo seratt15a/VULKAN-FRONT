@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
-import type { ClassCategory } from '../../data/types';
+import { useToast } from '../../context/ToastContext';
+import type { ClassCategory, GymClass } from '../../data/types';
 import { sortByDay } from '../../lib/format';
 
 const categories: ('Todas' | ClassCategory)[] = ['Todas', 'Fuerza', 'HIIT', 'Hipertrofia', 'Movilidad', 'Cardio'];
@@ -9,10 +10,20 @@ const categories: ('Todas' | ClassCategory)[] = ['Todas', 'Fuerza', 'HIIT', 'Hip
 export function MemberClasses() {
   const { session } = useAuth();
   const { classes, trainers, toggleBooking } = useData();
+  const { showToast } = useToast();
   const [filter, setFilter] = useState<'Todas' | ClassCategory>('Todas');
 
   const memberId = session?.memberId;
   const filtered = sortByDay(filter === 'Todas' ? classes : classes.filter((c) => c.category === filter));
+
+  const handleToggle = (gymClass: GymClass, alreadyBooked: boolean) => {
+    if (!memberId) return;
+    toggleBooking(gymClass.id, memberId);
+    showToast(
+      alreadyBooked ? `Reserva cancelada en ${gymClass.name}.` : `¡Reserva confirmada en ${gymClass.name}!`,
+      alreadyBooked ? 'info' : 'success',
+    );
+  };
 
   return (
     <>
@@ -60,7 +71,7 @@ export function MemberClasses() {
               <button
                 className={`btn ${booked ? 'btn-outline' : 'btn-primary'}`}
                 disabled={!booked && isFull}
-                onClick={() => memberId && toggleBooking(c.id, memberId)}
+                onClick={() => handleToggle(c, booked)}
               >
                 {booked ? 'Cancelar reserva' : isFull ? 'Sin cupo' : 'Reservar'}
               </button>

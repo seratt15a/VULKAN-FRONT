@@ -4,6 +4,17 @@ export type MembershipPlan = 'Básico' | 'Pro' | 'Élite';
 
 export type MembershipStatus = 'activa' | 'vencida' | 'pausada';
 
+export interface WeightEntry {
+  date: string;
+  weightKg: number;
+}
+
+export interface EmergencyContact {
+  name: string;
+  phone: string;
+  relationship: string;
+}
+
 export interface Member {
   id: string;
   name: string;
@@ -15,6 +26,11 @@ export interface Member {
   nextPaymentDate: string;
   monthlyFee: number;
   checkIns: number;
+  trainerId: string;
+  currentStreakDays: number;
+  weightGoalKg: number;
+  weightHistory: WeightEntry[];
+  emergencyContact: EmergencyContact;
 }
 
 export interface Trainer {

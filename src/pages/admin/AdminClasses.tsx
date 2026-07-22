@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import { sortByDay } from '../../lib/format';
 import type { ClassCategory, GymClass } from '../../data/types';
@@ -20,6 +21,7 @@ type FormState = {
 
 export function AdminClasses() {
   const { classes, trainers, addClass, updateClass, deleteClass } = useData();
+  const { showToast } = useToast();
   const [editing, setEditing] = useState<GymClass | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -51,9 +53,19 @@ export function AdminClasses() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (editing) updateClass(editing.id, form);
-    else addClass(form);
+    if (editing) {
+      updateClass(editing.id, form);
+      showToast(`Se actualizó la clase "${form.name}".`, 'success');
+    } else {
+      addClass(form);
+      showToast(`Se creó la clase "${form.name}".`, 'success');
+    }
     closeModals();
+  };
+
+  const handleDelete = (gymClass: GymClass) => {
+    deleteClass(gymClass.id);
+    showToast(`Se eliminó la clase "${gymClass.name}".`, 'info');
   };
 
   const sorted = sortByDay(classes);
@@ -98,7 +110,7 @@ export function AdminClasses() {
                       <button className="icon-btn" onClick={() => openEdit(c)} aria-label="Editar">
                         <Pencil />
                       </button>
-                      <button className="icon-btn" onClick={() => deleteClass(c.id)} aria-label="Eliminar">
+                      <button className="icon-btn" onClick={() => handleDelete(c)} aria-label="Eliminar">
                         <Trash2 />
                       </button>
                     </div>

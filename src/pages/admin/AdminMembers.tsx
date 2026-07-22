@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import { MembershipBadge } from '../../components/Badge';
 import { formatDate } from '../../lib/format';
@@ -25,7 +26,8 @@ const emptyForm: FormState = {
 };
 
 export function AdminMembers() {
-  const { members, addMember, updateMember, deleteMember } = useData();
+  const { members, trainers, addMember, updateMember, deleteMember } = useData();
+  const { showToast } = useToast();
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'todas' | MembershipStatus>('todas');
   const [editing, setEditing] = useState<Member | null>(null);
@@ -57,6 +59,7 @@ export function AdminMembers() {
     e.preventDefault();
     if (editing) {
       updateMember(editing.id, { ...form, monthlyFee: planFee[form.plan] });
+      showToast(`Se actualizó a ${form.name}.`, 'success');
     } else {
       addMember({
         ...form,
@@ -64,9 +67,20 @@ export function AdminMembers() {
         avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(form.name)}&backgroundColor=e8112a`,
         joinDate: new Date().toISOString().slice(0, 10),
         checkIns: 0,
+        trainerId: trainers[0]?.id ?? '',
+        currentStreakDays: 0,
+        weightGoalKg: 0,
+        weightHistory: [],
+        emergencyContact: { name: '', phone: '', relationship: '' },
       });
+      showToast(`${form.name} fue agregado como nuevo miembro.`, 'success');
     }
     closeModals();
+  };
+
+  const handleDelete = (member: Member) => {
+    deleteMember(member.id);
+    showToast(`Se eliminó a ${member.name}.`, 'info');
   };
 
   const renderForm = () => (
@@ -175,7 +189,7 @@ export function AdminMembers() {
                     <button className="icon-btn" onClick={() => openEdit(m)} aria-label="Editar">
                       <Pencil />
                     </button>
-                    <button className="icon-btn" onClick={() => deleteMember(m.id)} aria-label="Eliminar">
+                    <button className="icon-btn" onClick={() => handleDelete(m)} aria-label="Eliminar">
                       <Trash2 />
                     </button>
                   </div>
