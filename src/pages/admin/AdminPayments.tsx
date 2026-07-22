@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CheckCircle2, Wallet, Clock, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Wallet, Clock, AlertTriangle, Search } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { PaymentBadge } from '../../components/Badge';
@@ -11,6 +11,7 @@ export function AdminPayments() {
   const { payments, members, markPaymentStatus } = useData();
   const { showToast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'todos' | PaymentStatus>('todos');
+  const [query, setQuery] = useState('');
 
   const handleMarkPaid = (paymentId: string, memberName: string) => {
     markPaymentStatus(paymentId, 'pagado');
@@ -21,8 +22,11 @@ export function AdminPayments() {
   const pending = payments.filter((p) => p.status === 'pendiente');
   const overdue = payments.filter((p) => p.status === 'vencido');
 
+  const memberName = (memberId: string) => members.find((m) => m.id === memberId)?.name ?? '';
+
   const sorted = [...payments]
     .filter((p) => statusFilter === 'todos' || p.status === statusFilter)
+    .filter((p) => memberName(p.memberId).toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
@@ -40,7 +44,11 @@ export function AdminPayments() {
         <StatCard icon={<AlertTriangle size={20} />} label="Pagos vencidos" value={overdue.length} />
       </div>
 
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div className="search-input">
+          <Search />
+          <input placeholder="Buscar por miembro..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
@@ -90,6 +98,13 @@ export function AdminPayments() {
                 </tr>
               );
             })}
+            {sorted.length === 0 && (
+              <tr>
+                <td colSpan={6}>
+                  <div className="empty-state">No se encontraron pagos.</div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

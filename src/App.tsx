@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ToastStack } from './components/ToastStack';
+import { useAuth } from './context/AuthContext';
+import { homeByRole } from './lib/roleHome';
 import { Login } from './pages/Login';
 import { MemberDashboard } from './pages/member/MemberDashboard';
 import { MemberClasses } from './pages/member/MemberClasses';
@@ -15,6 +17,11 @@ import { AdminPayments } from './pages/admin/AdminPayments';
 import { TrainerSchedule } from './pages/trainer/TrainerSchedule';
 import { TrainerStudents } from './pages/trainer/TrainerStudents';
 import { TrainerProfile } from './pages/trainer/TrainerProfile';
+
+function CatchAll() {
+  const { session } = useAuth();
+  return <Navigate to={session ? homeByRole[session.role] : '/login'} replace />;
+}
 
 export default function App() {
   return (
@@ -62,7 +69,7 @@ export default function App() {
           <Route path="/entrenador/perfil" element={<TrainerProfile />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<CatchAll />} />
       </Routes>
     </>
   );

@@ -20,7 +20,7 @@ export function TrainerSchedule() {
         </div>
       </div>
 
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      <div className="stat-grid stat-grid-3">
         <StatCard icon={<Dumbbell size={20} />} label="Clases asignadas" value={myClasses.length} />
         <StatCard icon={<Users size={20} />} label="Alumnos únicos" value={totalStudents} />
         <StatCard

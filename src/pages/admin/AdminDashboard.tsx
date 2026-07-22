@@ -53,7 +53,7 @@ export function AdminDashboard() {
         <StatCard icon={<TrendingUp size={20} />} label="Membresías vencidas" value={overdue.length} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, alignItems: 'start', marginBottom: 20 }}>
+      <div className="two-col-14">
         <div className="card">
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', marginBottom: 16 }}>Ingresos por mes</h2>
           <BarChart data={revenueChartData} formatValue={(v) => formatCurrency(v)} />
@@ -79,7 +79,7 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20, alignItems: 'start' }}>
+      <div className="two-col-14" style={{ marginBottom: 0 }}>
         <div className="table-wrap">
           <table className="data-table">
             <thead>

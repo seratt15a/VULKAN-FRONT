@@ -111,7 +111,7 @@ export function MemberProfile() {
       </div>
 
       {tab === 'general' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 20, alignItems: 'start' }}>
+        <div className="two-col-12">
           <div className="card">
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', marginBottom: 18 }}>Datos personales</h3>
             <form onSubmit={handleSaveGeneral}>
@@ -173,7 +173,7 @@ export function MemberProfile() {
 
       {tab === 'progreso' && (
         <>
-          <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div className="stat-grid">
             <StatCard icon={<Weight size={20} />} label="Peso actual" value={lastWeight ? `${lastWeight} kg` : '—'} />
             <StatCard icon={<Target size={20} />} label="Meta" value={`${member.weightGoalKg} kg`} />
             <StatCard

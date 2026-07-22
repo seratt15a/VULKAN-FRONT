@@ -77,7 +77,7 @@ export function TrainerProfile() {
         </div>
       </div>
 
-      <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+      <div className="stat-grid stat-grid-2">
         <StatCard icon={<Dumbbell size={20} />} label="Clases asignadas" value={myClasses.length} />
         <StatCard icon={<Users size={20} />} label="Alumnos activos" value={trainer.activeStudents} />
       </div>

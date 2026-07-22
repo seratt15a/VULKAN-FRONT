@@ -1,14 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate } from 'react-router-dom';
-import type { Role } from '../data/types';
 import { DEMO_PASSWORD } from '../lib/demoAccounts';
+import { homeByRole } from '../lib/roleHome';
 import { useAuth } from '../context/AuthContext';
-
-const homeByRole: Record<Role, string> = {
-  member: '/',
-  admin: '/admin',
-  trainer: '/entrenador',
-};
 
 export function Login() {
   const { session, login } = useAuth();
