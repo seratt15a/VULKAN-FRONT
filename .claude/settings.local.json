@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(npm create *)",
+      "Bash(npx --yes create-vite@latest . --template react-ts)",
+      "Read(//c/Users/USER/AppData/Local/Temp/claude/C--Users-USER-Downloads-Gym-Front/36e9f79c-bb58-4fdb-84a5-895600427ab6/scratchpad/**)",
+      "Bash(rm -rf gymfront-scaffold)",
+      "Bash(npx --yes create-vite@latest gymfront-scaffold --template react-ts)",
+      "Bash(rm -rf \"/c/Users/USER/AppData/Local/Temp/claude/C--Users-USER-Downloads-Gym-Front/36e9f79c-bb58-4fdb-84a5-895600427ab6/scratchpad/gymfront-scaffold\")",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
