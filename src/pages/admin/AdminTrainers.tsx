@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -16,6 +16,12 @@ export function AdminTrainers() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [pendingDelete, setPendingDelete] = useState<Trainer | null>(null);
+  const [query, setQuery] = useState('');
+
+  const filtered = trainers.filter((t) => {
+    const q = query.toLowerCase();
+    return t.name.toLowerCase().includes(q) || t.specialty.toLowerCase().includes(q) || t.email.toLowerCase().includes(q);
+  });
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -69,6 +75,13 @@ export function AdminTrainers() {
         </button>
       </div>
 
+      <div style={{ marginBottom: 20 }}>
+        <div className="search-input">
+          <Search />
+          <input placeholder="Buscar por nombre, correo o especialidad..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+      </div>
+
       <div className="table-wrap">
         <table className="data-table">
           <thead>
@@ -81,7 +94,7 @@ export function AdminTrainers() {
             </tr>
           </thead>
           <tbody>
-            {trainers.map((t) => (
+            {filtered.map((t) => (
               <tr key={t.id}>
                 <td>
                   <div className="cell-user">
@@ -107,6 +120,13 @@ export function AdminTrainers() {
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={5}>
+                  <div className="empty-state">No se encontraron entrenadores.</div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

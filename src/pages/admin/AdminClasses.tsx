@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, List, LayoutGrid } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -20,12 +20,17 @@ type FormState = {
   capacity: number;
 };
 
+type View = 'lista' | 'calendario';
+
 export function AdminClasses() {
   const { classes, trainers, addClass, updateClass, deleteClass } = useData();
   const { showToast } = useToast();
   const [editing, setEditing] = useState<GymClass | null>(null);
   const [creating, setCreating] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<GymClass | null>(null);
+  const [query, setQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<'todas' | ClassCategory>('todas');
+  const [view, setView] = useState<View>('lista');
 
   const emptyForm: FormState = {
     name: '',
@@ -72,7 +77,16 @@ export function AdminClasses() {
     setPendingDelete(null);
   };
 
-  const sorted = sortByDay(classes);
+  const trainerName = (trainerId: string) => trainers.find((t) => t.id === trainerId)?.name ?? '—';
+
+  const filtered = classes.filter((c) => {
+    const q = query.toLowerCase();
+    const matchesQuery = c.name.toLowerCase().includes(q) || trainerName(c.trainerId).toLowerCase().includes(q);
+    const matchesCategory = categoryFilter === 'todas' || c.category === categoryFilter;
+    return matchesQuery && matchesCategory;
+  });
+
+  const sorted = sortByDay(filtered);
 
   return (
     <>
@@ -81,32 +95,58 @@ export function AdminClasses() {
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.5px' }}>Clases</h1>
           <p style={{ color: 'var(--gray)' }}>{classes.length} clases programadas esta semana.</p>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <Plus size={16} /> Nueva clase
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <div className="view-toggle">
+            <button className={view === 'lista' ? 'active' : ''} onClick={() => setView('lista')} aria-label="Vista de lista">
+              <List size={16} />
+            </button>
+            <button className={view === 'calendario' ? 'active' : ''} onClick={() => setView('calendario')} aria-label="Vista de calendario">
+              <LayoutGrid size={16} />
+            </button>
+          </div>
+          <button className="btn btn-primary" onClick={openCreate}>
+            <Plus size={16} /> Nueva clase
+          </button>
+        </div>
       </div>
 
-      <div className="table-wrap">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Clase</th>
-              <th>Entrenador</th>
-              <th>Horario</th>
-              <th>Cupo</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((c) => {
-              const trainer = trainers.find((t) => t.id === c.trainerId);
-              return (
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div className="search-input">
+          <Search />
+          <input placeholder="Buscar por clase o entrenador..." value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value as typeof categoryFilter)}
+          style={{ background: 'var(--black-card)', border: '1px solid var(--border)', borderRadius: 6, padding: '10px 14px', color: 'var(--white)' }}
+        >
+          <option value="todas">Todas las categorías</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+
+      {view === 'lista' ? (
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Clase</th>
+                <th>Entrenador</th>
+                <th>Horario</th>
+                <th>Cupo</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((c) => (
                 <tr key={c.id}>
                   <td>
                     <div className="cell-user-name">{c.name}</div>
                     <div className="cell-user-sub">{c.category}</div>
                   </td>
-                  <td>{trainer?.name ?? '—'}</td>
+                  <td>{trainerName(c.trainerId)}</td>
                   <td>{c.day} · {c.startTime} ({c.durationMin} min)</td>
                   <td>{c.bookedIds.length}/{c.capacity}</td>
                   <td>
@@ -120,11 +160,43 @@ export function AdminClasses() {
                     </div>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              ))}
+              {sorted.length === 0 && (
+                <tr>
+                  <td colSpan={5}>
+                    <div className="empty-state">No se encontraron clases.</div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="classes-calendar">
+          {days.map((day) => {
+            const dayClasses = filtered.filter((c) => c.day === day).sort((a, b) => (a.startTime < b.startTime ? -1 : 1));
+            return (
+              <div key={day} className="calendar-day-col">
+                <div className="calendar-day-head">{day}</div>
+                {dayClasses.map((c) => {
+                  const pct = Math.min(100, Math.round((c.bookedIds.length / c.capacity) * 100));
+                  return (
+                    <button key={c.id} className="calendar-class-chip" onClick={() => openEdit(c)}>
+                      <span className="chip-time">{c.startTime}</span>
+                      <strong>{c.name}</strong>
+                      <span className="chip-trainer">{trainerName(c.trainerId)}</span>
+                      <div className="progress-bar chip-progress">
+                        <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
+                      </div>
+                    </button>
+                  );
+                })}
+                {dayClasses.length === 0 && <p className="calendar-day-empty">Sin clases</p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {(creating || editing) && (
         <Modal title={editing ? 'Editar clase' : 'Nueva clase'} onClose={closeModals}>

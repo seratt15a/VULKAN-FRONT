@@ -16,14 +16,11 @@ type FormState = {
   plan: MembershipPlan;
   status: MembershipStatus;
   nextPaymentDate: string;
-};
-
-const emptyForm: FormState = {
-  name: '',
-  email: '',
-  plan: 'Básico',
-  status: 'activa',
-  nextPaymentDate: new Date().toISOString().slice(0, 10),
+  trainerId: string;
+  weightGoalKg: number;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  emergencyContactRelationship: string;
 };
 
 export function AdminMembers() {
@@ -33,6 +30,19 @@ export function AdminMembers() {
   const [statusFilter, setStatusFilter] = useState<'todas' | MembershipStatus>('todas');
   const [editing, setEditing] = useState<Member | null>(null);
   const [creating, setCreating] = useState(false);
+
+  const emptyForm: FormState = {
+    name: '',
+    email: '',
+    plan: 'Básico',
+    status: 'activa',
+    nextPaymentDate: new Date().toISOString().slice(0, 10),
+    trainerId: trainers[0]?.id ?? '',
+    weightGoalKg: 70,
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelationship: '',
+  };
   const [form, setForm] = useState<FormState>(emptyForm);
   const [pendingDelete, setPendingDelete] = useState<Member | null>(null);
 
@@ -48,7 +58,18 @@ export function AdminMembers() {
   };
 
   const openEdit = (member: Member) => {
-    setForm({ name: member.name, email: member.email, plan: member.plan, status: member.status, nextPaymentDate: member.nextPaymentDate });
+    setForm({
+      name: member.name,
+      email: member.email,
+      plan: member.plan,
+      status: member.status,
+      nextPaymentDate: member.nextPaymentDate,
+      trainerId: member.trainerId,
+      weightGoalKg: member.weightGoalKg,
+      emergencyContactName: member.emergencyContact.name,
+      emergencyContactPhone: member.emergencyContact.phone,
+      emergencyContactRelationship: member.emergencyContact.relationship,
+    });
     setEditing(member);
   };
 
@@ -59,21 +80,26 @@ export function AdminMembers() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    const { emergencyContactName, emergencyContactPhone, emergencyContactRelationship, ...rest } = form;
+    const emergencyContact = {
+      name: emergencyContactName,
+      phone: emergencyContactPhone,
+      relationship: emergencyContactRelationship,
+    };
+
     if (editing) {
-      updateMember(editing.id, { ...form, monthlyFee: planFee[form.plan] });
+      updateMember(editing.id, { ...rest, emergencyContact, monthlyFee: planFee[form.plan] });
       showToast(`Se actualizó a ${form.name}.`, 'success');
     } else {
       addMember({
-        ...form,
+        ...rest,
+        emergencyContact,
         monthlyFee: planFee[form.plan],
         avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(form.name)}&backgroundColor=e8112a`,
         joinDate: new Date().toISOString().slice(0, 10),
         checkIns: 0,
-        trainerId: trainers[0]?.id ?? '',
         currentStreakDays: 0,
-        weightGoalKg: 0,
         weightHistory: [],
-        emergencyContact: { name: '', phone: '', relationship: '' },
       });
       showToast(`${form.name} fue agregado como nuevo miembro.`, 'success');
     }
@@ -115,13 +141,65 @@ export function AdminMembers() {
           </select>
         </div>
       </div>
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="nextPaymentDate">Próximo pago</label>
+          <input
+            id="nextPaymentDate"
+            type="date"
+            value={form.nextPaymentDate}
+            onChange={(e) => setForm({ ...form, nextPaymentDate: e.target.value })}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="weightGoalKg">Meta de peso (kg)</label>
+          <input
+            id="weightGoalKg"
+            type="number"
+            min={0}
+            step={0.5}
+            value={form.weightGoalKg}
+            onChange={(e) => setForm({ ...form, weightGoalKg: Number(e.target.value) })}
+          />
+        </div>
+      </div>
       <div className="form-group">
-        <label htmlFor="nextPaymentDate">Próximo pago</label>
+        <label htmlFor="trainerId">Entrenador asignado</label>
+        <select id="trainerId" value={form.trainerId} onChange={(e) => setForm({ ...form, trainerId: e.target.value })}>
+          {trainers.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+      </div>
+
+      <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', margin: '10px 0 14px' }}>Contacto de emergencia</h3>
+      <div className="form-row">
+        <div className="form-group">
+          <label htmlFor="emergencyContactName">Nombre</label>
+          <input
+            id="emergencyContactName"
+            value={form.emergencyContactName}
+            onChange={(e) => setForm({ ...form, emergencyContactName: e.target.value })}
+            placeholder="Nombre completo"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="emergencyContactRelationship">Parentesco</label>
+          <input
+            id="emergencyContactRelationship"
+            value={form.emergencyContactRelationship}
+            onChange={(e) => setForm({ ...form, emergencyContactRelationship: e.target.value })}
+            placeholder="Ej. Esposa, Padre..."
+          />
+        </div>
+      </div>
+      <div className="form-group">
+        <label htmlFor="emergencyContactPhone">Teléfono</label>
         <input
-          id="nextPaymentDate"
-          type="date"
-          value={form.nextPaymentDate}
-          onChange={(e) => setForm({ ...form, nextPaymentDate: e.target.value })}
+          id="emergencyContactPhone"
+          value={form.emergencyContactPhone}
+          onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value })}
+          placeholder="+52 55 0000 0000"
         />
       </div>
       <div className="modal-actions">

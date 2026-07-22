@@ -33,7 +33,7 @@ export function AdminDashboard() {
     }));
 
   const occupancy = [...classes]
-    .map((c) => ({ ...c, pct: Math.round((c.bookedIds.length / c.capacity) * 100) }))
+    .map((c) => ({ ...c, pct: Math.min(100, Math.round((c.bookedIds.length / c.capacity) * 100)) }))
     .sort((a, b) => b.pct - a.pct)
     .slice(0, 5);
 
