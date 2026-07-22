@@ -1007,6 +1007,97 @@ table.data-table {
   margin-top: 2px;
 }
 
+/* ============ Exercise movement animation ============ */
+.exercise-anim {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--black-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.exercise-anim svg {
+  width: 68%;
+  height: 68%;
+}
+.exercise-anim-rod { fill: var(--red); }
+.exercise-anim-weight { fill: var(--white); opacity: 0.88; }
+.exercise-anim-bar { transform-box: fill-box; transform-origin: center; }
+
+.exercise-anim-squat .exercise-anim-bar { animation: exAnimSquat 1.6s ease-in-out infinite; }
+@keyframes exAnimSquat {
+  0%, 100% { transform: translateY(-9px); }
+  50% { transform: translateY(9px); }
+}
+
+.exercise-anim-hinge .exercise-anim-bar { animation: exAnimHinge 1.8s ease-in-out infinite; transform-origin: right center; }
+@keyframes exAnimHinge {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(18deg); }
+}
+
+.exercise-anim-press .exercise-anim-bar { animation: exAnimPress 1.4s ease-in-out infinite; }
+@keyframes exAnimPress {
+  0%, 100% { transform: translateY(9px); }
+  50% { transform: translateY(-11px); }
+}
+
+.exercise-anim-pull .exercise-anim-bar { animation: exAnimPull 1.4s ease-in-out infinite; }
+@keyframes exAnimPull {
+  0%, 100% { transform: translateX(9px); }
+  50% { transform: translateX(-9px); }
+}
+
+.exercise-anim-curl .exercise-anim-bar { animation: exAnimCurl 1.4s ease-in-out infinite; transform-origin: right center; }
+@keyframes exAnimCurl {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-45deg); }
+}
+
+.exercise-anim-core .exercise-anim-bar { animation: exAnimCore 1.8s ease-in-out infinite; }
+@keyframes exAnimCore {
+  0%, 100% { opacity: 0.5; transform: scaleX(1); }
+  50% { opacity: 1; transform: scaleX(1.04); }
+}
+
+.exercise-anim-lunge .exercise-anim-bar { animation: exAnimLunge 1.6s ease-in-out infinite; }
+@keyframes exAnimLunge {
+  0%, 100% { transform: translateY(-6px) rotate(-4deg); }
+  50% { transform: translateY(6px) rotate(4deg); }
+}
+
+.exercise-anim-generic .exercise-anim-bar { animation: exAnimGeneric 2s ease-in-out infinite; }
+@keyframes exAnimGeneric {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .exercise-anim-bar { animation: none !important; }
+}
+
+.exercise-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--black-card);
+}
+.exercise-card-body { flex: 1; min-width: 0; }
+.exercise-card-body h4 { font-size: 0.98rem; margin-bottom: 4px; }
+.exercise-card-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 0.82rem;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+.exercise-card-note { font-size: 0.8rem; color: var(--gray-dim); }
+
 /* ============ Responsive ============ */
 @media (max-width: 1100px) {
   .stat-grid, .stat-grid-3 { grid-template-columns: repeat(2, 1fr); }

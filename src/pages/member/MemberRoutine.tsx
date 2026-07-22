@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { formatDate } from '../../lib/format';
+import { ExerciseAnimation } from '../../components/ExerciseAnimation';
 
 export function MemberRoutine() {
   usePageTitle('Mi Rutina');
@@ -25,7 +26,7 @@ export function MemberRoutine() {
       </div>
 
       {currentPlan ? (
-        <div className="card" style={{ maxWidth: 640 }}>
+        <div style={{ maxWidth: 640 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
             <div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem' }}>{currentPlan.title}</h2>
@@ -38,27 +39,20 @@ export function MemberRoutine() {
             </span>
           </div>
 
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Ejercicio</th>
-                  <th>Series</th>
-                  <th>Reps</th>
-                  <th>Notas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentPlan.exercises.map((ex, i) => (
-                  <tr key={i}>
-                    <td className="cell-user-name">{ex.name}</td>
-                    <td>{ex.sets}</td>
-                    <td>{ex.reps}</td>
-                    <td style={{ color: 'var(--gray-dim)' }}>{ex.notes ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {currentPlan.exercises.map((ex, i) => (
+              <div key={i} className="exercise-card">
+                <ExerciseAnimation name={ex.name} size={56} />
+                <div className="exercise-card-body">
+                  <h4>{ex.name}</h4>
+                  <div className="exercise-card-meta">
+                    <span>{ex.sets} series</span>
+                    <span>{ex.reps} reps</span>
+                  </div>
+                  {ex.notes && <p className="exercise-card-note">{ex.notes}</p>}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ) : (

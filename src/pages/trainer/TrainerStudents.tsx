@@ -5,8 +5,10 @@ import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { MembershipBadge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
+import { ExerciseAnimation } from '../../components/ExerciseAnimation';
 import { sortByDay } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
+import { commonExercises } from '../../lib/exerciseLibrary';
 import type { Exercise, GymClass, Member } from '../../data/types';
 
 type ExerciseRow = Exercise;
@@ -153,36 +155,52 @@ export function TrainerStudents() {
               <input id="routineTitle" value={routineTitle} onChange={(e) => setRoutineTitle(e.target.value)} placeholder="Ej. Fuerza — Bloque 1" required />
             </div>
 
+            <datalist id="exercise-suggestions">
+              {commonExercises.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+
             {exercises.map((ex, i) => (
-              <div key={i} className="form-row" style={{ alignItems: 'end', gridTemplateColumns: '2fr 1fr 1fr auto' }}>
-                <div className="form-group">
-                  <label htmlFor={`ex-name-${i}`}>Ejercicio</label>
-                  <input id={`ex-name-${i}`} value={ex.name} onChange={(e) => updateExercise(i, { name: e.target.value })} placeholder="Ej. Sentadilla" required />
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`ex-sets-${i}`}>Series</label>
-                  <input
-                    id={`ex-sets-${i}`}
-                    type="number"
-                    min={1}
-                    value={ex.sets}
-                    onChange={(e) => updateExercise(i, { sets: Number(e.target.value) })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor={`ex-reps-${i}`}>Reps</label>
-                  <input id={`ex-reps-${i}`} value={ex.reps} onChange={(e) => updateExercise(i, { reps: e.target.value })} placeholder="Ej. 10" />
-                </div>
-                <div className="form-group">
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    onClick={() => setExercises((prev) => prev.filter((_, idx) => idx !== i))}
-                    disabled={exercises.length === 1}
-                    aria-label="Quitar ejercicio"
-                  >
-                    <Trash2 />
-                  </button>
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 8 }}>
+                <ExerciseAnimation name={ex.name} size={48} />
+                <div className="form-row" style={{ flex: 1, alignItems: 'end', gridTemplateColumns: '2fr 1fr 1fr auto', marginBottom: 0 }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label htmlFor={`ex-name-${i}`}>Ejercicio</label>
+                    <input
+                      id={`ex-name-${i}`}
+                      list="exercise-suggestions"
+                      value={ex.name}
+                      onChange={(e) => updateExercise(i, { name: e.target.value })}
+                      placeholder="Ej. Sentadilla"
+                      required
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label htmlFor={`ex-sets-${i}`}>Series</label>
+                    <input
+                      id={`ex-sets-${i}`}
+                      type="number"
+                      min={1}
+                      value={ex.sets}
+                      onChange={(e) => updateExercise(i, { sets: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label htmlFor={`ex-reps-${i}`}>Reps</label>
+                    <input id={`ex-reps-${i}`} value={ex.reps} onChange={(e) => updateExercise(i, { reps: e.target.value })} placeholder="Ej. 10" />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      onClick={() => setExercises((prev) => prev.filter((_, idx) => idx !== i))}
+                      disabled={exercises.length === 1}
+                      aria-label="Quitar ejercicio"
+                    >
+                      <Trash2 />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
