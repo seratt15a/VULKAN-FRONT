@@ -1007,7 +1007,7 @@ table.data-table {
   margin-top: 2px;
 }
 
-/* ============ Exercise movement animation ============ */
+/* ============ Exercise photo preview ============ */
 .exercise-anim {
   display: flex;
   align-items: center;
@@ -1018,64 +1018,19 @@ table.data-table {
   flex-shrink: 0;
   overflow: hidden;
 }
-.exercise-anim svg {
-  width: 68%;
-  height: 68%;
+.exercise-anim img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: exercisePhotoBreathe 5s ease-in-out infinite;
 }
-.exercise-anim-rod { fill: var(--red); }
-.exercise-anim-weight { fill: var(--white); opacity: 0.88; }
-.exercise-anim-bar { transform-box: fill-box; transform-origin: center; }
-
-.exercise-anim-squat .exercise-anim-bar { animation: exAnimSquat 1.6s ease-in-out infinite; }
-@keyframes exAnimSquat {
-  0%, 100% { transform: translateY(-9px); }
-  50% { transform: translateY(9px); }
-}
-
-.exercise-anim-hinge .exercise-anim-bar { animation: exAnimHinge 1.8s ease-in-out infinite; transform-origin: right center; }
-@keyframes exAnimHinge {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(18deg); }
-}
-
-.exercise-anim-press .exercise-anim-bar { animation: exAnimPress 1.4s ease-in-out infinite; }
-@keyframes exAnimPress {
-  0%, 100% { transform: translateY(9px); }
-  50% { transform: translateY(-11px); }
-}
-
-.exercise-anim-pull .exercise-anim-bar { animation: exAnimPull 1.4s ease-in-out infinite; }
-@keyframes exAnimPull {
-  0%, 100% { transform: translateX(9px); }
-  50% { transform: translateX(-9px); }
-}
-
-.exercise-anim-curl .exercise-anim-bar { animation: exAnimCurl 1.4s ease-in-out infinite; transform-origin: right center; }
-@keyframes exAnimCurl {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(-45deg); }
-}
-
-.exercise-anim-core .exercise-anim-bar { animation: exAnimCore 1.8s ease-in-out infinite; }
-@keyframes exAnimCore {
-  0%, 100% { opacity: 0.5; transform: scaleX(1); }
-  50% { opacity: 1; transform: scaleX(1.04); }
-}
-
-.exercise-anim-lunge .exercise-anim-bar { animation: exAnimLunge 1.6s ease-in-out infinite; }
-@keyframes exAnimLunge {
-  0%, 100% { transform: translateY(-6px) rotate(-4deg); }
-  50% { transform: translateY(6px) rotate(4deg); }
-}
-
-.exercise-anim-generic .exercise-anim-bar { animation: exAnimGeneric 2s ease-in-out infinite; }
-@keyframes exAnimGeneric {
+@keyframes exercisePhotoBreathe {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.14); }
+  50% { transform: scale(1.08); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .exercise-anim-bar { animation: none !important; }
+  .exercise-anim img { animation: none !important; }
 }
 
 .exercise-card {

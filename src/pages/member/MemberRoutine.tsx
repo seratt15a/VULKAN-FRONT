@@ -54,6 +54,14 @@ export function MemberRoutine() {
               </div>
             ))}
           </div>
+
+          <p style={{ color: 'var(--gray-dim)', fontSize: '0.72rem', marginTop: 18 }}>
+            Fotos de referencia:{' '}
+            <a href="https://wger.de" target="_blank" rel="noreferrer" style={{ color: 'var(--gray-dim)', textDecoration: 'underline' }}>
+              wger.de
+            </a>{' '}
+            (CC BY-SA 3.0)
+          </p>
         </div>
       ) : (
         <div className="empty-state">Tu entrenador aún no te ha asignado una rutina.</div>

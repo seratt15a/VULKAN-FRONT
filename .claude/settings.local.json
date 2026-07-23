@@ -15,7 +15,9 @@
       "Bash(pkill -f \"http-server.*5556\")",
       "Bash(npm run *)",
       "Bash(npx vitest *)",
-      "Bash(npx oxlint *)"
+      "Bash(npx oxlint *)",
+      "WebSearch",
+      "WebFetch(domain:wger.de)"
     ]
   }
 }
