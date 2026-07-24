@@ -162,8 +162,8 @@ export function TrainerStudents() {
             </datalist>
 
             {exercises.map((ex, i) => (
-              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 8 }}>
-                <ExerciseAnimation name={ex.name} size={48} />
+              <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                <ExerciseAnimation name={ex.name} size={72} />
                 <div className="form-row" style={{ flex: 1, alignItems: 'end', gridTemplateColumns: '2fr 1fr 1fr auto', marginBottom: 0 }}>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label htmlFor={`ex-name-${i}`}>Ejercicio</label>

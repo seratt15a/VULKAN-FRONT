@@ -17,7 +17,8 @@
       "Bash(npx vitest *)",
       "Bash(npx oxlint *)",
       "WebSearch",
-      "WebFetch(domain:wger.de)"
+      "WebFetch(domain:wger.de)",
+      "Bash(find \"/c/Users/USER/.claude/projects/C--Users-USER-Downloads-Gym-Front/36e9f79c-bb58-4fdb-84a5-895600427ab6/tool-results\" -type f 2>/dev/null | tail -20)"
     ]
   }
 }

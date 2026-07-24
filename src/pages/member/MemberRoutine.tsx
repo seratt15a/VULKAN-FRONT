@@ -42,7 +42,7 @@ export function MemberRoutine() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {currentPlan.exercises.map((ex, i) => (
               <div key={i} className="exercise-card">
-                <ExerciseAnimation name={ex.name} size={56} />
+                <ExerciseAnimation name={ex.name} size={96} />
                 <div className="exercise-card-body">
                   <h4>{ex.name}</h4>
                   <div className="exercise-card-meta">

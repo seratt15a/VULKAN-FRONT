@@ -33,8 +33,8 @@ export const movementPhotos: Record<MovementType, string> = {
   press: 'https://wger.de/media/exercise-images/925/67dbb1c9-b378-46f9-adb6-1f55b3d3007a.png',
   pull: 'https://wger.de/media/exercise-images/152/6c1a7459-266d-491a-bd50-7cbaea2bc771.png',
   curl: 'https://wger.de/media/exercise-images/1012/8270fdb8-28f1-4eff-b410-af8642085b3f.png',
-  core: 'https://wger.de/media/exercise-images/1022/f74644fa-f43e-46bd-8603-6e3a2ee8ee2d.jpg',
-  lunge: 'https://wger.de/media/exercise-images/984/5c7ffe68-e7b2-47f3-a22a-f9cc28640432.png',
+  core: 'https://wger.de/media/exercise-images/91/Crunches-1.png',
+  lunge: 'https://wger.de/media/exercise-images/113/Walking-lunges-1.png',
   generic: 'https://wger.de/media/exercise-images/960/da4d0560-da89-4bb5-b91f-746458fb04ad.png',
 };
 
