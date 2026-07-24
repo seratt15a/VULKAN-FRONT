@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type {
   BodyMeasurement,
+  CheckInRecord,
   GymClass,
   Member,
   Payment,
@@ -23,6 +24,7 @@ interface DataContextValue {
   payments: Payment[];
   workoutPlans: WorkoutPlan[];
   sessionPackages: SessionPackage[];
+  checkIns: CheckInRecord[];
   addMember: (member: Omit<Member, 'id'>) => void;
   updateMember: (id: string, patch: Partial<Member>) => void;
   deleteMember: (id: string) => void;
@@ -44,6 +46,7 @@ interface DataContextValue {
   useSessionPackageSession: (packageId: string) => void;
   addBodyMeasurement: (memberId: string, entry: BodyMeasurement) => void;
   addProgressPhoto: (memberId: string, photo: ProgressPhoto) => void;
+  checkInMember: (memberId: string) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -59,6 +62,7 @@ interface StoredData {
   payments: Payment[];
   workoutPlans: WorkoutPlan[];
   sessionPackages: SessionPackage[];
+  checkIns: CheckInRecord[];
 }
 
 function loadStored(): StoredData | null {
@@ -79,10 +83,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [sessionPackages, setSessionPackages] = useState<SessionPackage[]>(
     () => loadStored()?.sessionPackages ?? initialSessionPackages,
   );
+  const [checkIns, setCheckIns] = useState<CheckInRecord[]>(() => loadStored()?.checkIns ?? []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ members, trainers, classes, payments, workoutPlans, sessionPackages }));
-  }, [members, trainers, classes, payments, workoutPlans, sessionPackages]);
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns }),
+    );
+  }, [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns]);
 
   const value = useMemo<DataContextValue>(
     () => ({
@@ -92,6 +100,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       payments,
       workoutPlans,
       sessionPackages,
+      checkIns,
       addMember: (member) => setMembers((prev) => [...prev, { ...member, id: nextId('m') }]),
       updateMember: (id, patch) => setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m))),
       deleteMember: (id) => setMembers((prev) => prev.filter((m) => m.id !== id)),
@@ -160,8 +169,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, bodyMeasurements: [...m.bodyMeasurements, entry] } : m))),
       addProgressPhoto: (memberId, photo) =>
         setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, progressPhotos: [...m.progressPhotos, photo] } : m))),
+      checkInMember: (memberId) => {
+        const now = new Date();
+        setCheckIns((prev) => [
+          ...prev,
+          { id: nextId('ci'), memberId, date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5) },
+        ]);
+        setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, checkIns: m.checkIns + 1 } : m)));
+      },
     }),
-    [members, trainers, classes, payments, workoutPlans, sessionPackages],
+    [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns],
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

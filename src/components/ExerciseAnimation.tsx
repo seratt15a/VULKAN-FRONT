@@ -1,11 +1,14 @@
-import { getMovementType, movementTips, movementPhotos } from '../lib/exerciseLibrary';
+import { getMovementType, movementTips, movementPhotos, findLibraryExercise } from '../lib/exerciseLibrary';
 
-export function ExerciseAnimation({ name, size = 88 }: { name: string; size?: number }) {
+export function ExerciseAnimation({ name, libraryKey, size = 88 }: { name: string; libraryKey?: string; size?: number }) {
+  const libraryEntry = findLibraryExercise(libraryKey);
   const type = getMovementType(name);
+  const photo = libraryEntry?.photo ?? movementPhotos[type];
+  const tip = libraryEntry?.tip ?? movementTips[type];
 
   return (
-    <div className="exercise-anim" style={{ width: size, height: size }} title={movementTips[type]}>
-      <img src={movementPhotos[type]} alt={`Demostración: ${movementTips[type]}`} />
+    <div className="exercise-anim" style={{ width: size, height: size }} title={tip}>
+      <img src={photo} alt={`Demostración: ${tip}`} />
     </div>
   );
 }

@@ -67,7 +67,7 @@ export function Login() {
 
         <div className="login-demo-hint">
           <strong>Cuentas de prueba</strong> (aún sin backend real)
-          <p>admin@vulkangym.com · andres.reyes@gmail.com · marco.diaz@vulkangym.com</p>
+          <p>admin@vulkangym.com · recepcion@vulkangym.com · andres.reyes@gmail.com · marco.diaz@vulkangym.com</p>
           <p>Contraseña para todas: <code>{DEMO_PASSWORD}</code></p>
         </div>
       </div>

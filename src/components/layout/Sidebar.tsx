@@ -3,7 +3,7 @@ import { LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { navByRole } from './navConfig';
 
-const roleLabel = { member: 'Miembro', admin: 'Administrador', trainer: 'Entrenador' } as const;
+const roleLabel = { member: 'Miembro', admin: 'Administrador', trainer: 'Entrenador', reception: 'Recepción' } as const;
 
 export function Sidebar({ open, onNavigate }: { open: boolean; onNavigate: () => void }) {
   const { session, logout } = useAuth();

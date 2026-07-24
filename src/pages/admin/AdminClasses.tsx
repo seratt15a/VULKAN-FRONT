@@ -23,6 +23,22 @@ type FormState = {
 
 type View = 'lista' | 'calendario';
 
+function toMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function findScheduleConflict(classes: GymClass[], form: FormState, excludeId?: string): GymClass | undefined {
+  const start = toMinutes(form.startTime);
+  const end = start + form.durationMin;
+  return classes.find((c) => {
+    if (c.id === excludeId || c.trainerId !== form.trainerId || c.day !== form.day) return false;
+    const otherStart = toMinutes(c.startTime);
+    const otherEnd = otherStart + c.durationMin;
+    return start < otherEnd && otherStart < end;
+  });
+}
+
 export function AdminClasses() {
   usePageTitle('Clases');
   const { classes, trainers, addClass, updateClass, deleteClass } = useData();
@@ -60,8 +76,17 @@ export function AdminClasses() {
     setEditing(null);
   };
 
+  const scheduleConflict = findScheduleConflict(classes, form, editing?.id);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (scheduleConflict) {
+      showToast(
+        `${trainerName(form.trainerId)} ya tiene "${scheduleConflict.name}" el ${scheduleConflict.day} a las ${scheduleConflict.startTime}.`,
+        'error',
+      );
+      return;
+    }
     if (editing) {
       updateClass(editing.id, form);
       showToast(`Se actualizó la clase "${form.name}".`, 'success');
@@ -239,6 +264,11 @@ export function AdminClasses() {
                 <input id="startTime" type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} />
               </div>
             </div>
+            {scheduleConflict && (
+              <p style={{ color: 'var(--red)', fontSize: '0.82rem', marginBottom: 16 }}>
+                {trainerName(form.trainerId)} ya tiene "{scheduleConflict.name}" ese día a las {scheduleConflict.startTime}.
+              </p>
+            )}
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="durationMin">Duración (min)</label>
@@ -266,7 +296,7 @@ export function AdminClasses() {
               <button type="button" className="btn btn-outline" onClick={closeModals}>
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" disabled={Boolean(scheduleConflict)}>
                 {editing ? 'Guardar cambios' : 'Crear clase'}
               </button>
             </div>

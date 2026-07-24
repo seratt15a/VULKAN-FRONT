@@ -1,4 +1,4 @@
-export type Role = 'member' | 'admin' | 'trainer';
+export type Role = 'member' | 'admin' | 'trainer' | 'reception';
 
 export type MembershipPlan = 'Básico' | 'Pro' | 'Élite';
 
@@ -97,6 +97,7 @@ export interface Exercise {
   sets: number;
   reps: string;
   notes?: string;
+  libraryKey?: string;
 }
 
 export interface WorkoutPlan {
@@ -115,4 +116,11 @@ export interface SessionPackage {
   usedSessions: number;
   purchaseDate: string;
   price: number;
+}
+
+export interface CheckInRecord {
+  id: string;
+  memberId: string;
+  date: string;
+  time: string;
 }

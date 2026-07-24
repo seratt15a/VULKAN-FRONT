@@ -19,6 +19,7 @@ import { AdminPackages } from './pages/admin/AdminPackages';
 import { TrainerSchedule } from './pages/trainer/TrainerSchedule';
 import { TrainerStudents } from './pages/trainer/TrainerStudents';
 import { TrainerProfile } from './pages/trainer/TrainerProfile';
+import { CheckIn } from './pages/CheckIn';
 
 function CatchAll() {
   const { session } = useAuth();
@@ -54,6 +55,7 @@ export default function App() {
           }
         >
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/checkin" element={<CheckIn />} />
           <Route path="/admin/miembros" element={<AdminMembers />} />
           <Route path="/admin/clases" element={<AdminClasses />} />
           <Route path="/admin/entrenadores" element={<AdminTrainers />} />
@@ -71,6 +73,17 @@ export default function App() {
           <Route path="/entrenador" element={<TrainerSchedule />} />
           <Route path="/entrenador/alumnos" element={<TrainerStudents />} />
           <Route path="/entrenador/perfil" element={<TrainerProfile />} />
+        </Route>
+
+        <Route
+          element={
+            <ProtectedRoute role="reception">
+              <AppLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/recepcion" element={<CheckIn />} />
+          <Route path="/recepcion/pagos" element={<AdminPayments />} />
         </Route>
 
         <Route path="*" element={<CatchAll />} />

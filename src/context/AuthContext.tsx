@@ -24,6 +24,7 @@ interface AuthContextValue {
 
 const STORAGE_KEY = 'vulkan.session';
 const ADMIN_AVATAR = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=200&q=80';
+const RECEPTION_AVATAR = 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -57,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (account.role === 'admin') {
           setSession({ role: 'admin', name: 'Staff VULKAN', avatar: ADMIN_AVATAR });
+          return { ok: true };
+        }
+
+        if (account.role === 'reception') {
+          setSession({ role: 'reception', name: 'Recepción VULKAN', avatar: RECEPTION_AVATAR });
           return { ok: true };
         }
 

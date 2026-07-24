@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { CheckCircle2, Wallet, Clock, AlertTriangle, Search } from 'lucide-react';
+import { CheckCircle2, Wallet, Clock, AlertTriangle, Search, Download } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { PaymentBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
+import { downloadCsv } from '../../lib/csv';
 import type { PaymentStatus } from '../../data/types';
 
 export function AdminPayments() {
@@ -31,6 +32,19 @@ export function AdminPayments() {
     .filter((p) => memberName(p.memberId).toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 
+  const handleExport = () => {
+    downloadCsv(
+      'pagos.csv',
+      sorted.map((p) => ({
+        Miembro: memberName(p.memberId),
+        Plan: p.plan,
+        Fecha: p.date,
+        Monto: p.amount,
+        Estado: p.status,
+      })),
+    );
+  };
+
   return (
     <>
       <div className="page-header">
@@ -38,6 +52,9 @@ export function AdminPayments() {
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.5px' }}>Pagos</h1>
           <p style={{ color: 'var(--gray)' }}>Control de pagos y membresías.</p>
         </div>
+        <button className="btn btn-outline" onClick={handleExport}>
+          <Download size={16} /> Exportar CSV
+        </button>
       </div>
 
       <div className="stat-grid">

@@ -11,6 +11,7 @@ import {
   ClipboardList,
   ListChecks,
   Package,
+  LogIn,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -31,6 +32,7 @@ export const navByRole: Record<Role, NavItem[]> = {
   ],
   admin: [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
+    { to: '/admin/checkin', label: 'Check-in', icon: LogIn },
     { to: '/admin/miembros', label: 'Miembros', icon: Users },
     { to: '/admin/clases', label: 'Clases', icon: Dumbbell },
     { to: '/admin/entrenadores', label: 'Entrenadores', icon: UserCog },
@@ -41,5 +43,9 @@ export const navByRole: Record<Role, NavItem[]> = {
     { to: '/entrenador', label: 'Mi Horario', icon: CalendarDays, end: true },
     { to: '/entrenador/alumnos', label: 'Mis Alumnos', icon: ClipboardList },
     { to: '/entrenador/perfil', label: 'Perfil', icon: User },
+  ],
+  reception: [
+    { to: '/recepcion', label: 'Check-in', icon: LogIn, end: true },
+    { to: '/recepcion/pagos', label: 'Pagos', icon: Wallet },
   ],
 };

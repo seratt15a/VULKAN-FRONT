@@ -4,4 +4,5 @@ export const homeByRole: Record<Role, string> = {
   member: '/',
   admin: '/admin',
   trainer: '/entrenador',
+  reception: '/recepcion',
 };

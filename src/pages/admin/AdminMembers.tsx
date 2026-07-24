@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from 'react';
-import { Plus, Pencil, Trash2, Search, Snowflake, Check, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Snowflake, Check, X, Download } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MembershipBadge } from '../../components/Badge';
 import { formatDate } from '../../lib/format';
+import { downloadCsv } from '../../lib/csv';
 import { usePageTitle } from '../../lib/usePageTitle';
 import type { Member, MembershipPlan, MembershipStatus } from '../../data/types';
 
@@ -53,6 +54,20 @@ export function AdminMembers() {
     const matchesStatus = statusFilter === 'todas' || m.status === statusFilter;
     return matchesQuery && matchesStatus;
   });
+
+  const handleExport = () => {
+    downloadCsv(
+      'miembros.csv',
+      filtered.map((m) => ({
+        Nombre: m.name,
+        Correo: m.email,
+        Plan: m.plan,
+        Estado: m.status,
+        ProximoPago: m.nextPaymentDate,
+        CheckIns: m.checkIns,
+      })),
+    );
+  };
 
   const openCreate = () => {
     setForm(emptyForm);
@@ -233,9 +248,14 @@ export function AdminMembers() {
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', letterSpacing: '0.5px' }}>Miembros</h1>
           <p style={{ color: 'var(--gray)' }}>{members.length} miembros registrados.</p>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <Plus size={16} /> Nuevo miembro
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-outline" onClick={handleExport}>
+            <Download size={16} /> Exportar CSV
+          </button>
+          <button className="btn btn-primary" onClick={openCreate}>
+            <Plus size={16} /> Nuevo miembro
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>

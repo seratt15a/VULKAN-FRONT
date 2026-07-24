@@ -16,6 +16,7 @@ export interface DemoAccount {
 
 export const demoAccounts: DemoAccount[] = [
   { email: 'admin@vulkangym.com', role: 'admin' },
+  { email: 'recepcion@vulkangym.com', role: 'reception' },
   { email: 'andres.reyes@gmail.com', role: 'member', memberId: 'm1' },
   { email: 'laura.mendez@gmail.com', role: 'member', memberId: 'm2' },
   { email: 'jorge.salinas@gmail.com', role: 'member', memberId: 'm3' },

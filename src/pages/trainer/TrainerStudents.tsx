@@ -8,12 +8,12 @@ import { Modal } from '../../components/Modal';
 import { ExerciseAnimation } from '../../components/ExerciseAnimation';
 import { sortByDay } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
-import { commonExercises } from '../../lib/exerciseLibrary';
+import { exerciseLibrary } from '../../lib/exerciseLibrary';
 import type { Exercise, GymClass, Member } from '../../data/types';
 
 type ExerciseRow = Exercise;
 
-const emptyExercise: ExerciseRow = { name: '', sets: 3, reps: '10' };
+const emptyExercise: ExerciseRow = { name: exerciseLibrary[0].name, sets: 3, reps: '10', libraryKey: exerciseLibrary[0].key };
 
 export function TrainerStudents() {
   usePageTitle('Mis Alumnos');
@@ -155,26 +155,39 @@ export function TrainerStudents() {
               <input id="routineTitle" value={routineTitle} onChange={(e) => setRoutineTitle(e.target.value)} placeholder="Ej. Fuerza — Bloque 1" required />
             </div>
 
-            <datalist id="exercise-suggestions">
-              {commonExercises.map((name) => (
-                <option key={name} value={name} />
-              ))}
-            </datalist>
-
             {exercises.map((ex, i) => (
               <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                <ExerciseAnimation name={ex.name} size={72} />
+                <ExerciseAnimation name={ex.name} libraryKey={ex.libraryKey} size={72} />
                 <div className="form-row" style={{ flex: 1, alignItems: 'end', gridTemplateColumns: '2fr 1fr 1fr auto', marginBottom: 0 }}>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label htmlFor={`ex-name-${i}`}>Ejercicio</label>
-                    <input
+                    <select
                       id={`ex-name-${i}`}
-                      list="exercise-suggestions"
-                      value={ex.name}
-                      onChange={(e) => updateExercise(i, { name: e.target.value })}
-                      placeholder="Ej. Sentadilla"
-                      required
-                    />
+                      value={ex.libraryKey ?? 'custom'}
+                      onChange={(e) => {
+                        const key = e.target.value;
+                        if (key === 'custom') {
+                          updateExercise(i, { libraryKey: undefined, name: '' });
+                        } else {
+                          const lib = exerciseLibrary.find((x) => x.key === key);
+                          if (lib) updateExercise(i, { name: lib.name, libraryKey: lib.key });
+                        }
+                      }}
+                    >
+                      {exerciseLibrary.map((lib) => (
+                        <option key={lib.key} value={lib.key}>{lib.name}</option>
+                      ))}
+                      <option value="custom">Otro (personalizado)</option>
+                    </select>
+                    {ex.libraryKey === undefined && (
+                      <input
+                        style={{ marginTop: 8 }}
+                        value={ex.name}
+                        onChange={(e) => updateExercise(i, { name: e.target.value })}
+                        placeholder="Nombre del ejercicio"
+                        required
+                      />
+                    )}
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label htmlFor={`ex-sets-${i}`}>Series</label>
