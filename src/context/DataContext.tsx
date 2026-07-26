@@ -1,12 +1,15 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type {
+  AuditLogEntry,
   BodyMeasurement,
   CheckInRecord,
   GymClass,
   Member,
+  MembershipPlan,
   Payment,
   ProgressPhoto,
   SessionPackage,
+  SignupRequest,
   Trainer,
   WorkoutPlan,
 } from '../data/types';
@@ -17,6 +20,8 @@ import { payments as initialPayments } from '../data/payments';
 import { workoutPlans as initialWorkoutPlans } from '../data/workoutPlans';
 import { sessionPackages as initialSessionPackages } from '../data/sessionPackages';
 
+const planFee: Record<MembershipPlan, number> = { Básico: 29, Pro: 49, Élite: 89 };
+
 interface DataContextValue {
   members: Member[];
   trainers: Trainer[];
@@ -25,6 +30,8 @@ interface DataContextValue {
   workoutPlans: WorkoutPlan[];
   sessionPackages: SessionPackage[];
   checkIns: CheckInRecord[];
+  signupRequests: SignupRequest[];
+  auditLog: AuditLogEntry[];
   addMember: (member: Omit<Member, 'id'>) => void;
   updateMember: (id: string, patch: Partial<Member>) => void;
   deleteMember: (id: string) => void;
@@ -57,6 +64,10 @@ interface DataContextValue {
   deleteProgressPhoto: (memberId: string, photoUrl: string, photoDate: string) => void;
   checkInMember: (memberId: string) => void;
   deleteCheckIn: (id: string) => void;
+  addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status'>) => void;
+  approveSignupRequest: (id: string, trainerId: string) => void;
+  rejectSignupRequest: (id: string) => void;
+  logAudit: (actor: string, action: string) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -73,6 +84,8 @@ interface StoredData {
   workoutPlans: WorkoutPlan[];
   sessionPackages: SessionPackage[];
   checkIns: CheckInRecord[];
+  signupRequests: SignupRequest[];
+  auditLog: AuditLogEntry[];
 }
 
 function loadStored(): StoredData | null {
@@ -94,13 +107,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     () => loadStored()?.sessionPackages ?? initialSessionPackages,
   );
   const [checkIns, setCheckIns] = useState<CheckInRecord[]>(() => loadStored()?.checkIns ?? []);
+  const [signupRequests, setSignupRequests] = useState<SignupRequest[]>(() => loadStored()?.signupRequests ?? []);
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>(() => loadStored()?.auditLog ?? []);
 
   useEffect(() => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns }),
+      JSON.stringify({ members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns, signupRequests, auditLog }),
     );
-  }, [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns]);
+  }, [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns, signupRequests, auditLog]);
 
   const value = useMemo<DataContextValue>(
     () => ({
@@ -111,6 +126,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       workoutPlans,
       sessionPackages,
       checkIns,
+      signupRequests,
+      auditLog,
       addMember: (member) => setMembers((prev) => [...prev, { ...member, id: nextId('m') }]),
       updateMember: (id, patch) => setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m))),
       deleteMember: (id) => {
@@ -230,8 +247,44 @@ export function DataProvider({ children }: { children: ReactNode }) {
         setCheckIns((prev) => prev.filter((c) => c.id !== id));
         setMembers((prev) => prev.map((m) => (m.id === record.memberId ? { ...m, checkIns: Math.max(0, m.checkIns - 1) } : m)));
       },
+      addSignupRequest: (request) =>
+        setSignupRequests((prev) => [
+          ...prev,
+          { ...request, id: nextId('sr'), requestedAt: new Date().toISOString().slice(0, 10), status: 'pendiente' },
+        ]),
+      approveSignupRequest: (id, trainerId) => {
+        const request = signupRequests.find((r) => r.id === id);
+        if (!request) return;
+        setSignupRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'aprobado' } : r)));
+        setMembers((prev) => [
+          ...prev,
+          {
+            id: nextId('m'),
+            name: request.name,
+            email: request.email,
+            avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(request.name)}&backgroundColor=e8112a`,
+            plan: request.planInterest,
+            status: 'activa',
+            joinDate: new Date().toISOString().slice(0, 10),
+            nextPaymentDate: new Date().toISOString().slice(0, 10),
+            monthlyFee: planFee[request.planInterest],
+            checkIns: 0,
+            trainerId,
+            currentStreakDays: 0,
+            weightGoalKg: 70,
+            weightHistory: [],
+            emergencyContact: { name: '', phone: '', relationship: '' },
+            bodyMeasurements: [],
+            progressPhotos: [],
+            freezeRequest: null,
+          },
+        ]);
+      },
+      rejectSignupRequest: (id) => setSignupRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'rechazado' } : r))),
+      logAudit: (actor, action) =>
+        setAuditLog((prev) => [...prev, { id: nextId('log'), timestamp: new Date().toISOString(), actor, action }]),
     }),
-    [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns],
+    [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns, signupRequests, auditLog],
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

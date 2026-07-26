@@ -12,6 +12,9 @@ import {
   ListChecks,
   Package,
   LogIn,
+  BarChart3,
+  UserPlus,
+  History,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -34,10 +37,13 @@ export const navByRole: Record<Role, NavItem[]> = {
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/admin/checkin', label: 'Check-in', icon: LogIn },
     { to: '/admin/miembros', label: 'Miembros', icon: Users },
+    { to: '/admin/solicitudes', label: 'Solicitudes', icon: UserPlus },
     { to: '/admin/clases', label: 'Clases', icon: Dumbbell },
     { to: '/admin/entrenadores', label: 'Entrenadores', icon: UserCog },
     { to: '/admin/pagos', label: 'Pagos', icon: Wallet },
     { to: '/admin/paquetes', label: 'Paquetes', icon: Package },
+    { to: '/admin/reportes', label: 'Reportes', icon: BarChart3 },
+    { to: '/admin/bitacora', label: 'Bitácora', icon: History },
     { to: '/admin/perfil', label: 'Perfil', icon: User },
   ],
   trainer: [

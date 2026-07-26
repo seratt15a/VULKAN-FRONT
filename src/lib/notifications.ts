@@ -1,4 +1,4 @@
-import type { Member, GymClass, Payment, Role } from '../data/types';
+import type { Member, GymClass, Payment, Role, SignupRequest } from '../data/types';
 import { daysUntil, formatCurrency } from './format';
 
 export type NotificationSeverity = 'info' | 'warning' | 'danger';
@@ -19,6 +19,7 @@ interface NotificationData {
   members: Member[];
   classes: GymClass[];
   payments: Payment[];
+  signupRequests?: SignupRequest[];
 }
 
 const NEAR_FULL_THRESHOLD = 0.9;
@@ -57,6 +58,12 @@ export function getNotifications(session: Session | null, data: NotificationData
     data.members
       .filter((m) => m.freezeRequest)
       .forEach((m) => notifications.push({ id: `freeze-${m.id}`, message: `${m.name} solicitó pausar su membresía.`, severity: 'warning' }));
+
+    (data.signupRequests ?? [])
+      .filter((r) => r.status === 'pendiente')
+      .forEach((r) =>
+        notifications.push({ id: `signup-${r.id}`, message: `${r.name} solicitó inscribirse (plan ${r.planInterest}).`, severity: 'info' }),
+      );
 
     return notifications;
   }

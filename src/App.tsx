@@ -5,6 +5,7 @@ import { ToastStack } from './components/ToastStack';
 import { useAuth } from './context/AuthContext';
 import { homeByRole } from './lib/roleHome';
 import { Login } from './pages/Login';
+import { SignupRequestPage } from './pages/SignupRequestPage';
 import { MemberDashboard } from './pages/member/MemberDashboard';
 import { MemberClasses } from './pages/member/MemberClasses';
 import { MemberRoutine } from './pages/member/MemberRoutine';
@@ -16,6 +17,9 @@ import { AdminClasses } from './pages/admin/AdminClasses';
 import { AdminTrainers } from './pages/admin/AdminTrainers';
 import { AdminPayments } from './pages/admin/AdminPayments';
 import { AdminPackages } from './pages/admin/AdminPackages';
+import { AdminReports } from './pages/admin/AdminReports';
+import { AdminSignups } from './pages/admin/AdminSignups';
+import { AdminAuditLog } from './pages/admin/AdminAuditLog';
 import { TrainerSchedule } from './pages/trainer/TrainerSchedule';
 import { TrainerStudents } from './pages/trainer/TrainerStudents';
 import { TrainerProfile } from './pages/trainer/TrainerProfile';
@@ -33,6 +37,7 @@ export default function App() {
       <ToastStack />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/inscripcion" element={<SignupRequestPage />} />
 
         <Route
           element={
@@ -62,6 +67,9 @@ export default function App() {
           <Route path="/admin/entrenadores" element={<AdminTrainers />} />
           <Route path="/admin/pagos" element={<AdminPayments />} />
           <Route path="/admin/paquetes" element={<AdminPackages />} />
+          <Route path="/admin/reportes" element={<AdminReports />} />
+          <Route path="/admin/solicitudes" element={<AdminSignups />} />
+          <Route path="/admin/bitacora" element={<AdminAuditLog />} />
           <Route path="/admin/perfil" element={<StaffProfile />} />
         </Route>
 

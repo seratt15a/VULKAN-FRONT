@@ -1130,3 +1130,51 @@ table.data-table {
   .classes-calendar { grid-template-columns: repeat(2, 1fr); }
   .notif-panel { width: calc(100vw - 32px); right: -16px; }
 }
+
+/* ============ Payment receipt ============ */
+.receipt-print-area {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.receipt-brand {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+.receipt-brand span { color: var(--red); }
+.receipt-sub {
+  color: var(--gray);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.receipt-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 14px;
+  margin-top: 6px;
+  font-size: 1.1rem;
+}
+.receipt-total strong { color: var(--red); }
+
+@media print {
+  body * { visibility: hidden; }
+  .receipt-print-area, .receipt-print-area * { visibility: visible; }
+  .receipt-print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border: none;
+  }
+  .no-print { display: none !important; }
+}

@@ -7,6 +7,7 @@ import { DEMO_PASSWORD } from '../../lib/demoAccounts';
 import { computeAchievements } from '../../lib/achievements';
 import { StatCard } from '../../components/StatCard';
 import { WeightChart } from '../../components/WeightChart';
+import { MeasurementsChart, type MeasurementMetric } from '../../components/MeasurementsChart';
 import { formatDate } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
 
@@ -36,6 +37,7 @@ export function MemberProfile() {
 
   const [photoUrl, setPhotoUrl] = useState('');
   const [photoNote, setPhotoNote] = useState('');
+  const [measurementMetric, setMeasurementMetric] = useState<MeasurementMetric>('waistCm');
 
   if (!member) return null;
 
@@ -247,6 +249,22 @@ export function MemberProfile() {
                   </div>
                 );
               })()}
+              <div className="card weight-chart-card" style={{ marginBottom: 24 }}>
+                <div className="weight-chart-head">
+                  <h3>Tendencia de medidas</h3>
+                  <select
+                    value={measurementMetric}
+                    onChange={(e) => setMeasurementMetric(e.target.value as MeasurementMetric)}
+                    style={{ background: 'var(--black-card)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 12px', color: 'var(--white)' }}
+                  >
+                    <option value="waistCm">Cintura</option>
+                    <option value="chestCm">Pecho</option>
+                    <option value="armCm">Brazo</option>
+                    <option value="bodyFatPercent">% Grasa corporal</option>
+                  </select>
+                </div>
+                <MeasurementsChart history={member.bodyMeasurements} metric={measurementMetric} />
+              </div>
               <div className="table-wrap" style={{ marginBottom: 32 }}>
                 <table className="data-table">
                   <thead>

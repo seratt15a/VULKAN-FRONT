@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Plus, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -18,7 +19,8 @@ const defaultExpiration = () => {
 
 export function AdminPackages() {
   usePageTitle('Paquetes');
-  const { members, sessionPackages, addSessionPackage, updateSessionPackage, deleteSessionPackage, useSessionPackageSession } = useData();
+  const { members, sessionPackages, addSessionPackage, updateSessionPackage, deleteSessionPackage, useSessionPackageSession, logAudit } = useData();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<SessionPackage | null>(null);
@@ -72,6 +74,7 @@ export function AdminPackages() {
   const confirmDelete = () => {
     if (!pendingDelete) return;
     deleteSessionPackage(pendingDelete.id);
+    logAudit(session?.name ?? 'Admin', `Eliminó el paquete de ${memberName(pendingDelete.memberId)}`);
     showToast(`Se eliminó el paquete de ${memberName(pendingDelete.memberId)}.`, 'info');
     setPendingDelete(null);
   };

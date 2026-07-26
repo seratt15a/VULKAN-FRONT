@@ -1,15 +1,18 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Search, Snowflake, Check, X, Download } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Snowflake, Check, X, Download, Upload } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MembershipBadge } from '../../components/Badge';
 import { formatDate } from '../../lib/format';
-import { downloadCsv } from '../../lib/csv';
+import { downloadCsv, parseCsv } from '../../lib/csv';
 import { usePageTitle } from '../../lib/usePageTitle';
 import type { Member, MembershipPlan, MembershipStatus } from '../../data/types';
+
+const validPlans: MembershipPlan[] = ['Básico', 'Pro', 'Élite'];
 
 const planFee: Record<MembershipPlan, number> = { Básico: 29, Pro: 49, Élite: 89 };
 
@@ -28,7 +31,8 @@ type FormState = {
 
 export function AdminMembers() {
   usePageTitle('Miembros');
-  const { members, trainers, addMember, updateMember, deleteMember, resolveFreezeRequest } = useData();
+  const { members, trainers, addMember, updateMember, deleteMember, resolveFreezeRequest, logAudit } = useData();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const location = useLocation();
   const [query, setQuery] = useState(() => (location.state as { presetQuery?: string } | null)?.presetQuery ?? '');
@@ -50,6 +54,7 @@ export function AdminMembers() {
   };
   const [form, setForm] = useState<FormState>(emptyForm);
   const [pendingDelete, setPendingDelete] = useState<Member | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = members.filter((m) => {
     const matchesQuery = m.name.toLowerCase().includes(query.toLowerCase()) || m.email.toLowerCase().includes(query.toLowerCase());
@@ -74,6 +79,60 @@ export function AdminMembers() {
   const openCreate = () => {
     setForm(emptyForm);
     setCreating(true);
+  };
+
+  const handleImportClick = () => importInputRef.current?.click();
+
+  const handleImportFile = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const text = await file.text();
+    const rows = parseCsv(text);
+    const existingEmails = new Set(members.map((m) => m.email.toLowerCase()));
+    let imported = 0;
+    let skipped = 0;
+
+    rows.forEach((row) => {
+      const name = row['Nombre'];
+      const email = row['Correo'];
+      if (!name || !email || existingEmails.has(email.toLowerCase())) {
+        skipped++;
+        return;
+      }
+      const plan = validPlans.includes(row['Plan'] as MembershipPlan) ? (row['Plan'] as MembershipPlan) : 'Básico';
+      addMember({
+        name,
+        email,
+        plan,
+        status: 'activa',
+        nextPaymentDate: new Date().toISOString().slice(0, 10),
+        trainerId: trainers[0]?.id ?? '',
+        weightGoalKg: 70,
+        monthlyFee: planFee[plan],
+        avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=e8112a`,
+        joinDate: new Date().toISOString().slice(0, 10),
+        checkIns: 0,
+        currentStreakDays: 0,
+        weightHistory: [],
+        emergencyContact: { name: '', phone: '', relationship: '' },
+        bodyMeasurements: [],
+        progressPhotos: [],
+        freezeRequest: null,
+      });
+      existingEmails.add(email.toLowerCase());
+      imported++;
+    });
+
+    if (imported === 0 && skipped === 0) {
+      showToast('El archivo no tiene filas válidas. Usa las columnas Nombre y Correo.', 'error');
+    } else {
+      showToast(
+        `${imported} miembro${imported === 1 ? '' : 's'} importado${imported === 1 ? '' : 's'}${skipped > 0 ? `, ${skipped} omitido${skipped === 1 ? '' : 's'} (duplicado o incompleto)` : ''}.`,
+        imported > 0 ? 'success' : 'error',
+      );
+    }
   };
 
   const openEdit = (member: Member) => {
@@ -140,6 +199,7 @@ export function AdminMembers() {
   const confirmDelete = () => {
     if (!pendingDelete) return;
     deleteMember(pendingDelete.id);
+    logAudit(session?.name ?? 'Admin', `Eliminó al miembro ${pendingDelete.name}`);
     showToast(`Se eliminó a ${pendingDelete.name}.`, 'info');
     setPendingDelete(null);
   };
@@ -260,6 +320,16 @@ export function AdminMembers() {
           <p style={{ color: 'var(--gray)' }}>{members.length} miembros registrados.</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            style={{ display: 'none' }}
+            onChange={handleImportFile}
+          />
+          <button className="btn btn-outline" onClick={handleImportClick}>
+            <Upload size={16} /> Importar CSV
+          </button>
           <button className="btn btn-outline" onClick={handleExport}>
             <Download size={16} /> Exportar CSV
           </button>

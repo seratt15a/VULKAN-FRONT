@@ -1,11 +1,13 @@
 import { useState, type FormEvent } from 'react';
-import { CheckCircle2, Wallet, Clock, AlertTriangle, Search, Download, Plus, Pencil, Trash2 } from 'lucide-react';
+import { CheckCircle2, Wallet, Clock, AlertTriangle, Search, Download, Plus, Pencil, Trash2, Receipt } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { PaymentBadge } from '../../components/Badge';
 import { StatCard } from '../../components/StatCard';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { PaymentReceipt } from '../../components/PaymentReceipt';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
 import { downloadCsv } from '../../lib/csv';
@@ -15,13 +17,15 @@ type FormState = { memberId: string; amount: number; date: string; plan: Members
 
 export function AdminPayments() {
   usePageTitle('Pagos');
-  const { payments, members, markPaymentStatus, addPayment, updatePayment, deletePayment } = useData();
+  const { payments, members, markPaymentStatus, addPayment, updatePayment, deletePayment, logAudit } = useData();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'todos' | PaymentStatus>('todos');
   const [query, setQuery] = useState('');
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Payment | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Payment | null>(null);
+  const [receiptTarget, setReceiptTarget] = useState<Payment | null>(null);
 
   const emptyForm: FormState = {
     memberId: members[0]?.id ?? '',
@@ -56,6 +60,7 @@ export function AdminPayments() {
     e.preventDefault();
     if (editing) {
       updatePayment(editing.id, form);
+      logAudit(session?.name ?? 'Admin', `Editó el pago de ${memberName(form.memberId)} (${editing.id})`);
       showToast('Se actualizó el pago.', 'success');
     } else {
       addPayment(form);
@@ -67,6 +72,7 @@ export function AdminPayments() {
   const confirmDelete = () => {
     if (!pendingDelete) return;
     deletePayment(pendingDelete.id);
+    logAudit(session?.name ?? 'Admin', `Eliminó el pago de ${memberName(pendingDelete.memberId)} (${pendingDelete.id})`);
     showToast('Se eliminó el pago.', 'info');
     setPendingDelete(null);
   };
@@ -169,6 +175,9 @@ export function AdminPayments() {
                           <CheckCircle2 size={14} /> Marcar pagado
                         </button>
                       )}
+                      <button className="icon-btn" onClick={() => setReceiptTarget(p)} aria-label="Recibo" title="Ver recibo">
+                        <Receipt />
+                      </button>
                       <button className="icon-btn" onClick={() => openEdit(p)} aria-label="Editar">
                         <Pencil />
                       </button>
@@ -249,6 +258,10 @@ export function AdminPayments() {
           onConfirm={confirmDelete}
           onCancel={() => setPendingDelete(null)}
         />
+      )}
+
+      {receiptTarget && (
+        <PaymentReceipt payment={receiptTarget} memberName={memberName(receiptTarget.memberId) || 'Miembro'} onClose={() => setReceiptTarget(null)} />
       )}
     </>
   );

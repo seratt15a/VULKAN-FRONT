@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, LogIn, Users, CalendarCheck, Undo2 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useToast } from '../context/ToastContext';
 import { MembershipBadge } from '../components/Badge';
@@ -10,7 +11,8 @@ import type { CheckInRecord, Member } from '../data/types';
 
 export function CheckIn() {
   usePageTitle('Check-in');
-  const { members, checkIns, checkInMember, deleteCheckIn } = useData();
+  const { members, checkIns, checkInMember, deleteCheckIn, logAudit } = useData();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const [query, setQuery] = useState('');
   const [pendingUndo, setPendingUndo] = useState<CheckInRecord | null>(null);
@@ -36,7 +38,9 @@ export function CheckIn() {
 
   const confirmUndo = () => {
     if (!pendingUndo) return;
+    const member = members.find((m) => m.id === pendingUndo.memberId);
     deleteCheckIn(pendingUndo.id);
+    logAudit(session?.name ?? 'Staff', `Deshizo el check-in de ${member?.name ?? 'un miembro'}`);
     showToast('Se deshizo el check-in.', 'info');
     setPendingUndo(null);
   };

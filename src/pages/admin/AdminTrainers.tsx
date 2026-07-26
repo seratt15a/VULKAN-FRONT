@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -13,7 +14,8 @@ const emptyForm: FormState = { name: '', email: '', specialty: '', bio: '' };
 
 export function AdminTrainers() {
   usePageTitle('Entrenadores');
-  const { trainers, classes, addTrainer, updateTrainer, deleteTrainer, reassignTrainerClasses } = useData();
+  const { trainers, classes, addTrainer, updateTrainer, deleteTrainer, reassignTrainerClasses, logAudit } = useData();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const location = useLocation();
   const [editing, setEditing] = useState<Trainer | null>(null);
@@ -72,6 +74,7 @@ export function AdminTrainers() {
   const confirmDelete = () => {
     if (!pendingDelete) return;
     deleteTrainer(pendingDelete.id);
+    logAudit(session?.name ?? 'Admin', `Eliminó al entrenador ${pendingDelete.name}`);
     showToast(`Se eliminó a ${pendingDelete.name}.`, 'info');
     setPendingDelete(null);
   };
@@ -96,6 +99,7 @@ export function AdminTrainers() {
     if (!reassignTarget) return;
     reassignTrainerClasses(reassignTarget.id, reassignToId);
     deleteTrainer(reassignTarget.id);
+    logAudit(session?.name ?? 'Admin', `Eliminó al entrenador ${reassignTarget.name} (clases reasignadas)`);
     showToast(`Se reasignaron las clases de ${reassignTarget.name} y se eliminó su cuenta.`, 'success');
     setReassignTarget(null);
   };

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Search, List, LayoutGrid, Copy } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -42,7 +43,8 @@ function findScheduleConflict(classes: GymClass[], form: FormState, excludeId?: 
 
 export function AdminClasses() {
   usePageTitle('Clases');
-  const { classes, trainers, addClass, updateClass, deleteClass } = useData();
+  const { classes, trainers, addClass, updateClass, deleteClass, logAudit } = useData();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const location = useLocation();
   const [editing, setEditing] = useState<GymClass | null>(null);
@@ -107,6 +109,7 @@ export function AdminClasses() {
   const confirmDelete = () => {
     if (!pendingDelete) return;
     deleteClass(pendingDelete.id);
+    logAudit(session?.name ?? 'Admin', `Eliminó la clase "${pendingDelete.name}"`);
     showToast(`Se eliminó la clase "${pendingDelete.name}".`, 'info');
     setPendingDelete(null);
   };

@@ -1,14 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import { Snowflake } from 'lucide-react';
+import { Snowflake, Receipt } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { MembershipBadge, PaymentBadge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { PaymentReceipt } from '../../components/PaymentReceipt';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
-import type { MembershipPlan } from '../../data/types';
+import type { MembershipPlan, Payment } from '../../data/types';
 
 const planFeatures: Record<MembershipPlan, string[]> = {
   Básico: ['Acceso a sala de pesas', 'Horario limitado', '1 evaluación física al mes'],
@@ -26,6 +27,7 @@ export function MemberMembership() {
   const [freezeModalOpen, setFreezeModalOpen] = useState(false);
   const [freezeReason, setFreezeReason] = useState('');
   const [planChangeTarget, setPlanChangeTarget] = useState<MembershipPlan | null>(null);
+  const [receiptTarget, setReceiptTarget] = useState<Payment | null>(null);
 
   const member = members.find((m) => m.id === session?.memberId);
   if (!member) return null;
@@ -147,6 +149,7 @@ export function MemberMembership() {
               <th>Plan</th>
               <th>Monto</th>
               <th>Estado</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -156,6 +159,11 @@ export function MemberMembership() {
                 <td>{p.plan}</td>
                 <td>{formatCurrency(p.amount)}</td>
                 <td><PaymentBadge status={p.status} /></td>
+                <td>
+                  <button className="icon-btn" onClick={() => setReceiptTarget(p)} aria-label="Recibo" title="Ver recibo">
+                    <Receipt />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -198,6 +206,10 @@ export function MemberMembership() {
           onConfirm={handleConfirmPlanChange}
           onCancel={() => setPlanChangeTarget(null)}
         />
+      )}
+
+      {receiptTarget && (
+        <PaymentReceipt payment={receiptTarget} memberName={member.name} onClose={() => setReceiptTarget(null)} />
       )}
     </>
   );

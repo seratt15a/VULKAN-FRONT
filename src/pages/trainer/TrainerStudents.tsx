@@ -19,7 +19,7 @@ const emptyExercise: ExerciseRow = { name: exerciseLibrary[0].name, sets: 3, rep
 export function TrainerStudents() {
   usePageTitle('Mis Alumnos');
   const { session } = useAuth();
-  const { classes, members, workoutPlans, toggleAttendance, addWorkoutPlan, updateWorkoutPlan, deleteWorkoutPlan, addBodyMeasurement } =
+  const { classes, members, workoutPlans, toggleAttendance, addWorkoutPlan, updateWorkoutPlan, deleteWorkoutPlan, addBodyMeasurement, logAudit } =
     useData();
   const { showToast } = useToast();
 
@@ -90,6 +90,7 @@ export function TrainerStudents() {
   const confirmDeletePlan = () => {
     if (!pendingDeletePlanId) return;
     deleteWorkoutPlan(pendingDeletePlanId);
+    logAudit(session?.name ?? 'Entrenador', `Eliminó la rutina de ${routineTarget?.name ?? 'un miembro'}`);
     showToast('Se eliminó la rutina.', 'info');
     setPendingDeletePlanId(null);
     setRoutineTarget(null);

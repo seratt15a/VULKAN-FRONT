@@ -125,3 +125,22 @@ export interface CheckInRecord {
   date: string;
   time: string;
 }
+
+export type SignupRequestStatus = 'pendiente' | 'aprobado' | 'rechazado';
+
+export interface SignupRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  planInterest: MembershipPlan;
+  requestedAt: string;
+  status: SignupRequestStatus;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  actor: string;
+  action: string;
+}

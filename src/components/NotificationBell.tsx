@@ -7,11 +7,11 @@ import { useEscapeClose } from '../lib/useEscapeClose';
 
 export function NotificationBell() {
   const { session } = useAuth();
-  const { members, classes, payments } = useData();
+  const { members, classes, payments, signupRequests } = useData();
   const [open, setOpen] = useState(false);
   useEscapeClose(() => setOpen(false), open);
 
-  const notifications = getNotifications(session, { members, classes, payments });
+  const notifications = getNotifications(session, { members, classes, payments, signupRequests });
 
   return (
     <div className="notif-wrap">
