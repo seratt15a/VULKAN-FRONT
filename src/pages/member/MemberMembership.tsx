@@ -112,7 +112,7 @@ export function MemberMembership() {
                   <div className="progress-bar" style={{ marginBottom: 10 }}>
                     <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
                   </div>
-                  <span style={{ color: 'var(--gray-dim)', fontSize: '0.8rem' }}>{remaining} restantes · comprado {formatDate(pkg.purchaseDate)}</span>
+                  <span style={{ color: 'var(--gray-dim)', fontSize: '0.8rem' }}>{remaining} restantes · vence {formatDate(pkg.expirationDate)}</span>
                 </div>
               );
             })}

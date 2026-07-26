@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Search, Snowflake, Check, X, Download } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
@@ -29,7 +30,8 @@ export function AdminMembers() {
   usePageTitle('Miembros');
   const { members, trainers, addMember, updateMember, deleteMember, resolveFreezeRequest } = useData();
   const { showToast } = useToast();
-  const [query, setQuery] = useState('');
+  const location = useLocation();
+  const [query, setQuery] = useState(() => (location.state as { presetQuery?: string } | null)?.presetQuery ?? '');
   const [statusFilter, setStatusFilter] = useState<'todas' | MembershipStatus>('todas');
   const [editing, setEditing] = useState<Member | null>(null);
   const [creating, setCreating] = useState(false);
@@ -97,6 +99,15 @@ export function AdminMembers() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+
+    const emailTaken = members.some(
+      (m) => m.email.toLowerCase() === form.email.trim().toLowerCase() && m.id !== editing?.id,
+    );
+    if (emailTaken) {
+      showToast(`Ya existe un miembro con el correo ${form.email}.`, 'error');
+      return;
+    }
+
     const { emergencyContactName, emergencyContactPhone, emergencyContactRelationship, ...rest } = form;
     const emergencyContact = {
       name: emergencyContactName,

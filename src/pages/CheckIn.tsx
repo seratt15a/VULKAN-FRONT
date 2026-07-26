@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Search, LogIn, Users, CalendarCheck } from 'lucide-react';
+import { Search, LogIn, Users, CalendarCheck, Undo2 } from 'lucide-react';
 import { useData } from '../context/DataContext';
 import { useToast } from '../context/ToastContext';
 import { MembershipBadge } from '../components/Badge';
 import { StatCard } from '../components/StatCard';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { usePageTitle } from '../lib/usePageTitle';
-import type { Member } from '../data/types';
+import type { CheckInRecord, Member } from '../data/types';
 
 export function CheckIn() {
   usePageTitle('Check-in');
-  const { members, checkIns, checkInMember } = useData();
+  const { members, checkIns, checkInMember, deleteCheckIn } = useData();
   const { showToast } = useToast();
   const [query, setQuery] = useState('');
+  const [pendingUndo, setPendingUndo] = useState<CheckInRecord | null>(null);
 
   const today = new Date().toISOString().slice(0, 10);
   const todayCheckIns = checkIns.filter((c) => c.date === today).slice().reverse();
@@ -30,6 +32,13 @@ export function CheckIn() {
     checkInMember(member.id);
     showToast(`Check-in registrado: ${member.name}.`, 'success');
     setQuery('');
+  };
+
+  const confirmUndo = () => {
+    if (!pendingUndo) return;
+    deleteCheckIn(pendingUndo.id);
+    showToast('Se deshizo el check-in.', 'info');
+    setPendingUndo(null);
   };
 
   return (
@@ -89,6 +98,7 @@ export function CheckIn() {
             <tr>
               <th>Miembro</th>
               <th>Hora</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -103,12 +113,17 @@ export function CheckIn() {
                     </div>
                   </td>
                   <td>{c.time}</td>
+                  <td>
+                    <button className="icon-btn" onClick={() => setPendingUndo(c)} aria-label="Deshacer check-in" title="Deshacer check-in">
+                      <Undo2 />
+                    </button>
+                  </td>
                 </tr>
               );
             })}
             {todayCheckIns.length === 0 && (
               <tr>
-                <td colSpan={2}>
+                <td colSpan={3}>
                   <div className="empty-state">Aún no hay check-ins registrados hoy.</div>
                 </td>
               </tr>
@@ -116,6 +131,15 @@ export function CheckIn() {
           </tbody>
         </table>
       </div>
+
+      {pendingUndo && (
+        <ConfirmDialog
+          title="Deshacer check-in"
+          message="¿Seguro que quieres deshacer este check-in? Se eliminará del registro de hoy."
+          onConfirm={confirmUndo}
+          onCancel={() => setPendingUndo(null)}
+        />
+      )}
     </>
   );
 }

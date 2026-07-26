@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
@@ -14,13 +15,14 @@ export function AdminTrainers() {
   usePageTitle('Entrenadores');
   const { trainers, classes, addTrainer, updateTrainer, deleteTrainer, reassignTrainerClasses } = useData();
   const { showToast } = useToast();
+  const location = useLocation();
   const [editing, setEditing] = useState<Trainer | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [pendingDelete, setPendingDelete] = useState<Trainer | null>(null);
   const [reassignTarget, setReassignTarget] = useState<Trainer | null>(null);
   const [reassignToId, setReassignToId] = useState('');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => (location.state as { presetQuery?: string } | null)?.presetQuery ?? '');
 
   const filtered = trainers.filter((t) => {
     const q = query.toLowerCase();
@@ -44,6 +46,15 @@ export function AdminTrainers() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+
+    const emailTaken = trainers.some(
+      (t) => t.email.toLowerCase() === form.email.trim().toLowerCase() && t.id !== editing?.id,
+    );
+    if (emailTaken) {
+      showToast(`Ya existe un entrenador con el correo ${form.email}.`, 'error');
+      return;
+    }
+
     if (editing) {
       updateTrainer(editing.id, form);
       showToast(`Se actualizó a ${form.name}.`, 'success');

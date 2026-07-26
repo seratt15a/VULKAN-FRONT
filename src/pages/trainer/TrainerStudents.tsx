@@ -5,6 +5,7 @@ import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { MembershipBadge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExerciseAnimation } from '../../components/ExerciseAnimation';
 import { sortByDay } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
@@ -18,12 +19,15 @@ const emptyExercise: ExerciseRow = { name: exerciseLibrary[0].name, sets: 3, rep
 export function TrainerStudents() {
   usePageTitle('Mis Alumnos');
   const { session } = useAuth();
-  const { classes, members, toggleAttendance, addWorkoutPlan, addBodyMeasurement } = useData();
+  const { classes, members, workoutPlans, toggleAttendance, addWorkoutPlan, updateWorkoutPlan, deleteWorkoutPlan, addBodyMeasurement } =
+    useData();
   const { showToast } = useToast();
 
   const [routineTarget, setRoutineTarget] = useState<Member | null>(null);
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [routineTitle, setRoutineTitle] = useState('');
   const [exercises, setExercises] = useState<ExerciseRow[]>([{ ...emptyExercise }]);
+  const [pendingDeletePlanId, setPendingDeletePlanId] = useState<string | null>(null);
 
   const [measurementTarget, setMeasurementTarget] = useState<Member | null>(null);
   const [bodyFatPercent, setBodyFatPercent] = useState(20);
@@ -33,6 +37,9 @@ export function TrainerStudents() {
 
   const myClasses = sortByDay(classes.filter((c) => c.trainerId === session?.trainerId));
 
+  const latestPlanFor = (memberId: string) =>
+    workoutPlans.filter((p) => p.memberId === memberId).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+
   const handleToggleAttendance = (gymClass: GymClass, member: Member) => {
     toggleAttendance(gymClass.id, member.id);
     const wasAttended = gymClass.attendedIds.includes(member.id);
@@ -40,16 +47,25 @@ export function TrainerStudents() {
   };
 
   const openRoutineModal = (member: Member) => {
-    setRoutineTitle('');
-    setExercises([{ ...emptyExercise }]);
+    const existing = latestPlanFor(member.id);
+    if (existing) {
+      setRoutineTitle(existing.title);
+      setExercises(existing.exercises.length ? existing.exercises : [{ ...emptyExercise }]);
+      setEditingPlanId(existing.id);
+    } else {
+      setRoutineTitle('');
+      setExercises([{ ...emptyExercise }]);
+      setEditingPlanId(null);
+    }
     setRoutineTarget(member);
   };
 
   const openMeasurementModal = (member: Member) => {
-    setBodyFatPercent(20);
-    setWaistCm(80);
-    setChestCm(95);
-    setArmCm(30);
+    const latest = [...member.bodyMeasurements].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+    setBodyFatPercent(latest?.bodyFatPercent ?? 20);
+    setWaistCm(latest?.waistCm ?? 80);
+    setChestCm(latest?.chestCm ?? 95);
+    setArmCm(latest?.armCm ?? 30);
     setMeasurementTarget(member);
   };
 
@@ -60,13 +76,22 @@ export function TrainerStudents() {
   const handleSubmitRoutine = (e: FormEvent) => {
     e.preventDefault();
     if (!routineTarget || !session?.trainerId) return;
-    addWorkoutPlan({
-      memberId: routineTarget.id,
-      trainerId: session.trainerId,
-      title: routineTitle,
-      exercises: exercises.filter((ex) => ex.name.trim().length > 0),
-    });
-    showToast(`Rutina asignada a ${routineTarget.name}.`, 'success');
+    const cleanExercises = exercises.filter((ex) => ex.name.trim().length > 0);
+    if (editingPlanId) {
+      updateWorkoutPlan(editingPlanId, { title: routineTitle, exercises: cleanExercises });
+      showToast(`Se actualizó la rutina de ${routineTarget.name}.`, 'success');
+    } else {
+      addWorkoutPlan({ memberId: routineTarget.id, trainerId: session.trainerId, title: routineTitle, exercises: cleanExercises });
+      showToast(`Rutina asignada a ${routineTarget.name}.`, 'success');
+    }
+    setRoutineTarget(null);
+  };
+
+  const confirmDeletePlan = () => {
+    if (!pendingDeletePlanId) return;
+    deleteWorkoutPlan(pendingDeletePlanId);
+    showToast('Se eliminó la rutina.', 'info');
+    setPendingDeletePlanId(null);
     setRoutineTarget(null);
   };
 
@@ -108,6 +133,7 @@ export function TrainerStudents() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {roster.map((m) => {
                   const attended = c.attendedIds.includes(m.id);
+                  const hasPlan = Boolean(latestPlanFor(m.id));
                   return (
                     <div key={m.id} className="cell-user" style={{ justifyContent: 'space-between' }}>
                       <div className="cell-user">
@@ -128,7 +154,13 @@ export function TrainerStudents() {
                         >
                           {attended ? <CheckCircle2 /> : <Circle />}
                         </button>
-                        <button className="icon-btn" onClick={() => openRoutineModal(m)} aria-label="Asignar rutina" title="Asignar rutina">
+                        <button
+                          className="icon-btn"
+                          style={hasPlan ? { borderColor: 'var(--red)', color: 'var(--red)' } : undefined}
+                          onClick={() => openRoutineModal(m)}
+                          aria-label={hasPlan ? 'Editar rutina' : 'Asignar rutina'}
+                          title={hasPlan ? 'Editar rutina' : 'Asignar rutina'}
+                        >
                           <ClipboardList />
                         </button>
                         <button className="icon-btn" onClick={() => openMeasurementModal(m)} aria-label="Registrar medición" title="Registrar medición">
@@ -148,7 +180,7 @@ export function TrainerStudents() {
       {myClasses.length === 0 && <div className="empty-state">No tienes clases asignadas todavía.</div>}
 
       {routineTarget && (
-        <Modal title={`Asignar rutina a ${routineTarget.name}`} onClose={() => setRoutineTarget(null)}>
+        <Modal title={`${editingPlanId ? 'Editar' : 'Asignar'} rutina — ${routineTarget.name}`} onClose={() => setRoutineTarget(null)}>
           <form onSubmit={handleSubmitRoutine}>
             <div className="form-group">
               <label htmlFor="routineTitle">Título</label>
@@ -222,21 +254,40 @@ export function TrainerStudents() {
               <Plus size={14} /> Agregar ejercicio
             </button>
 
-            <div className="modal-actions">
-              <button type="button" className="btn btn-outline" onClick={() => setRoutineTarget(null)}>
-                Cancelar
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Asignar rutina
-              </button>
+            <div className="modal-actions" style={{ justifyContent: editingPlanId ? 'space-between' : 'flex-end' }}>
+              {editingPlanId && (
+                <button type="button" className="btn btn-danger" onClick={() => setPendingDeletePlanId(editingPlanId)}>
+                  Eliminar rutina
+                </button>
+              )}
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button type="button" className="btn btn-outline" onClick={() => setRoutineTarget(null)}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {editingPlanId ? 'Guardar cambios' : 'Asignar rutina'}
+                </button>
+              </div>
             </div>
           </form>
         </Modal>
       )}
 
+      {pendingDeletePlanId && (
+        <ConfirmDialog
+          title="Eliminar rutina"
+          message="¿Seguro que quieres eliminar esta rutina? El miembro dejará de verla en Mi Rutina."
+          onConfirm={confirmDeletePlan}
+          onCancel={() => setPendingDeletePlanId(null)}
+        />
+      )}
+
       {measurementTarget && (
         <Modal title={`Registrar medición — ${measurementTarget.name}`} onClose={() => setMeasurementTarget(null)}>
           <form onSubmit={handleSubmitMeasurement}>
+            <p style={{ color: 'var(--gray-dim)', fontSize: '0.8rem', marginBottom: 14 }}>
+              Si ya registraste una medición hoy, guardar de nuevo corrige esa entrada en vez de duplicarla.
+            </p>
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="bodyFatPercent">% Grasa corporal</label>

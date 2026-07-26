@@ -115,6 +115,7 @@ export interface SessionPackage {
   totalSessions: number;
   usedSessions: number;
   purchaseDate: string;
+  expirationDate: string;
   price: number;
 }
 

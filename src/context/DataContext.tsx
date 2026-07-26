@@ -40,14 +40,23 @@ interface DataContextValue {
   leaveWaitlist: (classId: string, memberId: string) => void;
   toggleAttendance: (classId: string, memberId: string) => void;
   markPaymentStatus: (id: string, status: Payment['status']) => void;
+  addPayment: (payment: Omit<Payment, 'id'>) => void;
+  updatePayment: (id: string, patch: Partial<Payment>) => void;
+  deletePayment: (id: string) => void;
   addWorkoutPlan: (plan: Omit<WorkoutPlan, 'id' | 'createdAt'>) => void;
+  updateWorkoutPlan: (id: string, patch: Partial<Omit<WorkoutPlan, 'id'>>) => void;
+  deleteWorkoutPlan: (id: string) => void;
   requestFreeze: (memberId: string, reason: string) => void;
   resolveFreezeRequest: (memberId: string, approve: boolean) => void;
   addSessionPackage: (pkg: Omit<SessionPackage, 'id'>) => void;
+  updateSessionPackage: (id: string, patch: Partial<SessionPackage>) => void;
+  deleteSessionPackage: (id: string) => void;
   useSessionPackageSession: (packageId: string) => void;
   addBodyMeasurement: (memberId: string, entry: BodyMeasurement) => void;
   addProgressPhoto: (memberId: string, photo: ProgressPhoto) => void;
+  deleteProgressPhoto: (memberId: string, photoUrl: string, photoDate: string) => void;
   checkInMember: (memberId: string) => void;
+  deleteCheckIn: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -104,7 +113,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
       checkIns,
       addMember: (member) => setMembers((prev) => [...prev, { ...member, id: nextId('m') }]),
       updateMember: (id, patch) => setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m))),
-      deleteMember: (id) => setMembers((prev) => prev.filter((m) => m.id !== id)),
+      deleteMember: (id) => {
+        setMembers((prev) => prev.filter((m) => m.id !== id));
+        setClasses((prev) =>
+          prev.map((c) => ({
+            ...c,
+            bookedIds: c.bookedIds.filter((mid) => mid !== id),
+            waitlistIds: c.waitlistIds.filter((mid) => mid !== id),
+            attendedIds: c.attendedIds.filter((mid) => mid !== id),
+          })),
+        );
+      },
       addTrainer: (trainer) => setTrainers((prev) => [...prev, { ...trainer, id: nextId('t') }]),
       updateTrainer: (id, patch) => setTrainers((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t))),
       deleteTrainer: (id) => setTrainers((prev) => prev.filter((t) => t.id !== id)),
@@ -151,8 +170,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
         );
       },
       markPaymentStatus: (id, status) => setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p))),
+      addPayment: (payment) => setPayments((prev) => [...prev, { ...payment, id: nextId('p') }]),
+      updatePayment: (id, patch) => setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
+      deletePayment: (id) => setPayments((prev) => prev.filter((p) => p.id !== id)),
       addWorkoutPlan: (plan) =>
         setWorkoutPlans((prev) => [...prev, { ...plan, id: nextId('wp'), createdAt: new Date().toISOString().slice(0, 10) }]),
+      updateWorkoutPlan: (id, patch) => setWorkoutPlans((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
+      deleteWorkoutPlan: (id) => setWorkoutPlans((prev) => prev.filter((p) => p.id !== id)),
       requestFreeze: (memberId, reason) =>
         setMembers((prev) =>
           prev.map((m) =>
@@ -164,14 +188,34 @@ export function DataProvider({ children }: { children: ReactNode }) {
           prev.map((m) => (m.id === memberId ? { ...m, freezeRequest: null, status: approve ? 'pausada' : m.status } : m)),
         ),
       addSessionPackage: (pkg) => setSessionPackages((prev) => [...prev, { ...pkg, id: nextId('pkg') }]),
+      updateSessionPackage: (id, patch) => setSessionPackages((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
+      deleteSessionPackage: (id) => setSessionPackages((prev) => prev.filter((p) => p.id !== id)),
       useSessionPackageSession: (packageId) =>
         setSessionPackages((prev) =>
           prev.map((p) => (p.id === packageId && p.usedSessions < p.totalSessions ? { ...p, usedSessions: p.usedSessions + 1 } : p)),
         ),
       addBodyMeasurement: (memberId, entry) =>
-        setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, bodyMeasurements: [...m.bodyMeasurements, entry] } : m))),
+        setMembers((prev) =>
+          prev.map((m) => {
+            if (m.id !== memberId) return m;
+            const existingIndex = m.bodyMeasurements.findIndex((e) => e.date === entry.date);
+            const bodyMeasurements =
+              existingIndex === -1
+                ? [...m.bodyMeasurements, entry]
+                : m.bodyMeasurements.map((e, i) => (i === existingIndex ? entry : e));
+            return { ...m, bodyMeasurements };
+          }),
+        ),
       addProgressPhoto: (memberId, photo) =>
         setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, progressPhotos: [...m.progressPhotos, photo] } : m))),
+      deleteProgressPhoto: (memberId, photoUrl, photoDate) =>
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.id === memberId
+              ? { ...m, progressPhotos: m.progressPhotos.filter((p) => !(p.url === photoUrl && p.date === photoDate)) }
+              : m,
+          ),
+        ),
       checkInMember: (memberId) => {
         const now = new Date();
         setCheckIns((prev) => [
@@ -179,6 +223,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
           { id: nextId('ci'), memberId, date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5) },
         ]);
         setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, checkIns: m.checkIns + 1 } : m)));
+      },
+      deleteCheckIn: (id) => {
+        const record = checkIns.find((c) => c.id === id);
+        if (!record) return;
+        setCheckIns((prev) => prev.filter((c) => c.id !== id));
+        setMembers((prev) => prev.map((m) => (m.id === record.memberId ? { ...m, checkIns: Math.max(0, m.checkIns - 1) } : m)));
       },
     }),
     [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns],

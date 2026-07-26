@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { Plus, Pencil, Trash2, Search, List, LayoutGrid } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { Plus, Pencil, Trash2, Search, List, LayoutGrid, Copy } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -43,10 +44,11 @@ export function AdminClasses() {
   usePageTitle('Clases');
   const { classes, trainers, addClass, updateClass, deleteClass } = useData();
   const { showToast } = useToast();
+  const location = useLocation();
   const [editing, setEditing] = useState<GymClass | null>(null);
   const [creating, setCreating] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<GymClass | null>(null);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => (location.state as { presetQuery?: string } | null)?.presetQuery ?? '');
   const [categoryFilter, setCategoryFilter] = useState<'todas' | ClassCategory>('todas');
   const [view, setView] = useState<View>('lista');
 
@@ -74,6 +76,11 @@ export function AdminClasses() {
   const closeModals = () => {
     setCreating(false);
     setEditing(null);
+  };
+
+  const openDuplicate = (c: GymClass) => {
+    setForm({ name: `${c.name} (copia)`, category: c.category, trainerId: c.trainerId, day: c.day, startTime: c.startTime, durationMin: c.durationMin, capacity: c.capacity });
+    setCreating(true);
   };
 
   const scheduleConflict = findScheduleConflict(classes, form, editing?.id);
@@ -180,6 +187,9 @@ export function AdminClasses() {
                     <div className="table-actions">
                       <button className="icon-btn" onClick={() => openEdit(c)} aria-label="Editar">
                         <Pencil />
+                      </button>
+                      <button className="icon-btn" onClick={() => openDuplicate(c)} aria-label="Duplicar">
+                        <Copy />
                       </button>
                       <button className="icon-btn" onClick={() => setPendingDelete(c)} aria-label="Eliminar">
                         <Trash2 />
