@@ -14,6 +14,7 @@ import { MemberMembership } from './pages/member/MemberMembership';
 import { MemberProfile } from './pages/member/MemberProfile';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminMembers } from './pages/admin/AdminMembers';
+import { AdminMemberDetail } from './pages/admin/AdminMemberDetail';
 import { AdminClasses } from './pages/admin/AdminClasses';
 import { AdminTrainers } from './pages/admin/AdminTrainers';
 import { AdminPayments } from './pages/admin/AdminPayments';
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/checkin" element={<CheckIn />} />
           <Route path="/admin/miembros" element={<AdminMembers />} />
+          <Route path="/admin/miembros/:id" element={<AdminMemberDetail />} />
           <Route path="/admin/clases" element={<AdminClasses />} />
           <Route path="/admin/entrenadores" element={<AdminTrainers />} />
           <Route path="/admin/pagos" element={<AdminPayments />} />

@@ -1,6 +1,6 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Search, Snowflake, Check, X, Download, Upload } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Plus, Pencil, Trash2, Search, Snowflake, Check, X, Download, Upload, Eye } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
@@ -36,6 +36,7 @@ export function AdminMembers() {
   const { session } = useAuth();
   const { showToast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   const [query, setQuery] = useState(() => (location.state as { presetQuery?: string } | null)?.presetQuery ?? '');
   const [statusFilter, setStatusFilter] = useState<'todas' | MembershipStatus>('todas');
   const [editing, setEditing] = useState<Member | null>(null);
@@ -408,6 +409,9 @@ export function AdminMembers() {
                         </button>
                       </>
                     )}
+                    <button className="icon-btn" onClick={() => navigate(`/admin/miembros/${m.id}`)} aria-label="Ver perfil" title="Ver perfil completo">
+                      <Eye />
+                    </button>
                     <button className="icon-btn" onClick={() => openEdit(m)} aria-label="Editar">
                       <Pencil />
                     </button>

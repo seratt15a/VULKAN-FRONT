@@ -33,6 +33,13 @@ export function TrainerProfile() {
 
   const handleSaveGeneral = (e: FormEvent) => {
     e.preventDefault();
+
+    const emailTaken = trainers.some((t) => t.email.toLowerCase() === email.trim().toLowerCase() && t.id !== trainer.id);
+    if (emailTaken) {
+      showToast(`Ya existe un entrenador con el correo ${email}.`, 'error');
+      return;
+    }
+
     updateTrainer(trainer.id, { name, email, specialty, bio });
     showToast('Perfil actualizado correctamente.', 'success');
   };

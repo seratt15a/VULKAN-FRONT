@@ -52,6 +52,13 @@ export function MemberProfile() {
 
   const handleSaveGeneral = (e: FormEvent) => {
     e.preventDefault();
+
+    const emailTaken = members.some((m) => m.email.toLowerCase() === email.trim().toLowerCase() && m.id !== member.id);
+    if (emailTaken) {
+      showToast(`Ya existe un miembro con el correo ${email}.`, 'error');
+      return;
+    }
+
     updateMember(member.id, {
       name,
       email,

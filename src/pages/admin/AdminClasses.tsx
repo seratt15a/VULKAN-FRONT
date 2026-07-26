@@ -86,6 +86,7 @@ export function AdminClasses() {
   };
 
   const scheduleConflict = findScheduleConflict(classes, form, editing?.id);
+  const capacityTooLow = Boolean(editing && form.capacity < editing.bookedIds.length);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -94,6 +95,10 @@ export function AdminClasses() {
         `${trainerName(form.trainerId)} ya tiene "${scheduleConflict.name}" el ${scheduleConflict.day} a las ${scheduleConflict.startTime}.`,
         'error',
       );
+      return;
+    }
+    if (capacityTooLow && editing) {
+      showToast(`El cupo no puede ser menor a los ${editing.bookedIds.length} miembros ya inscritos.`, 'error');
       return;
     }
     if (editing) {
@@ -299,17 +304,22 @@ export function AdminClasses() {
                 <input
                   id="capacity"
                   type="number"
-                  min={1}
+                  min={editing ? editing.bookedIds.length : 1}
                   value={form.capacity}
                   onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })}
                 />
               </div>
             </div>
+            {capacityTooLow && editing && (
+              <p style={{ color: 'var(--red)', fontSize: '0.82rem', marginBottom: 16 }}>
+                El cupo no puede ser menor a los {editing.bookedIds.length} miembros ya inscritos.
+              </p>
+            )}
             <div className="modal-actions">
               <button type="button" className="btn btn-outline" onClick={closeModals}>
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-primary" disabled={Boolean(scheduleConflict)}>
+              <button type="submit" className="btn btn-primary" disabled={Boolean(scheduleConflict) || capacityTooLow}>
                 {editing ? 'Guardar cambios' : 'Crear clase'}
               </button>
             </div>
