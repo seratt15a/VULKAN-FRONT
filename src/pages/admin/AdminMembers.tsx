@@ -7,6 +7,7 @@ import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { MembershipBadge } from '../../components/Badge';
+import { Spinner } from '../../components/Spinner';
 import { formatDate } from '../../lib/format';
 import { downloadCsv, parseCsv } from '../../lib/csv';
 import { usePageTitle } from '../../lib/usePageTitle';
@@ -54,6 +55,7 @@ export function AdminMembers() {
   };
   const [form, setForm] = useState<FormState>(emptyForm);
   const [pendingDelete, setPendingDelete] = useState<Member | null>(null);
+  const [importing, setImporting] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = members.filter((m) => {
@@ -88,50 +90,57 @@ export function AdminMembers() {
     e.target.value = '';
     if (!file) return;
 
-    const text = await file.text();
-    const rows = parseCsv(text);
-    const existingEmails = new Set(members.map((m) => m.email.toLowerCase()));
-    let imported = 0;
-    let skipped = 0;
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const rows = parseCsv(text);
+      const existingEmails = new Set(members.map((m) => m.email.toLowerCase()));
+      let imported = 0;
+      let skipped = 0;
 
-    rows.forEach((row) => {
-      const name = row['Nombre'];
-      const email = row['Correo'];
-      if (!name || !email || existingEmails.has(email.toLowerCase())) {
-        skipped++;
-        return;
-      }
-      const plan = validPlans.includes(row['Plan'] as MembershipPlan) ? (row['Plan'] as MembershipPlan) : 'Básico';
-      addMember({
-        name,
-        email,
-        plan,
-        status: 'activa',
-        nextPaymentDate: new Date().toISOString().slice(0, 10),
-        trainerId: trainers[0]?.id ?? '',
-        weightGoalKg: 70,
-        monthlyFee: planFee[plan],
-        avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=e8112a`,
-        joinDate: new Date().toISOString().slice(0, 10),
-        checkIns: 0,
-        currentStreakDays: 0,
-        weightHistory: [],
-        emergencyContact: { name: '', phone: '', relationship: '' },
-        bodyMeasurements: [],
-        progressPhotos: [],
-        freezeRequest: null,
+      rows.forEach((row) => {
+        const name = row['Nombre'];
+        const email = row['Correo'];
+        if (!name || !email || existingEmails.has(email.toLowerCase())) {
+          skipped++;
+          return;
+        }
+        const plan = validPlans.includes(row['Plan'] as MembershipPlan) ? (row['Plan'] as MembershipPlan) : 'Básico';
+        addMember({
+          name,
+          email,
+          plan,
+          status: 'activa',
+          nextPaymentDate: new Date().toISOString().slice(0, 10),
+          trainerId: trainers[0]?.id ?? '',
+          weightGoalKg: 70,
+          monthlyFee: planFee[plan],
+          avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=e8112a`,
+          joinDate: new Date().toISOString().slice(0, 10),
+          checkIns: 0,
+          currentStreakDays: 0,
+          weightHistory: [],
+          emergencyContact: { name: '', phone: '', relationship: '' },
+          bodyMeasurements: [],
+          progressPhotos: [],
+          freezeRequest: null,
+        });
+        existingEmails.add(email.toLowerCase());
+        imported++;
       });
-      existingEmails.add(email.toLowerCase());
-      imported++;
-    });
 
-    if (imported === 0 && skipped === 0) {
-      showToast('El archivo no tiene filas válidas. Usa las columnas Nombre y Correo.', 'error');
-    } else {
-      showToast(
-        `${imported} miembro${imported === 1 ? '' : 's'} importado${imported === 1 ? '' : 's'}${skipped > 0 ? `, ${skipped} omitido${skipped === 1 ? '' : 's'} (duplicado o incompleto)` : ''}.`,
-        imported > 0 ? 'success' : 'error',
-      );
+      if (imported === 0 && skipped === 0) {
+        showToast('El archivo no tiene filas válidas. Usa las columnas Nombre y Correo.', 'error');
+      } else {
+        showToast(
+          `${imported} miembro${imported === 1 ? '' : 's'} importado${imported === 1 ? '' : 's'}${skipped > 0 ? `, ${skipped} omitido${skipped === 1 ? '' : 's'} (duplicado o incompleto)` : ''}.`,
+          imported > 0 ? 'success' : 'error',
+        );
+      }
+    } catch {
+      showToast('No se pudo leer el archivo. Verifica que sea un CSV válido.', 'error');
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -327,8 +336,8 @@ export function AdminMembers() {
             style={{ display: 'none' }}
             onChange={handleImportFile}
           />
-          <button className="btn btn-outline" onClick={handleImportClick}>
-            <Upload size={16} /> Importar CSV
+          <button className="btn btn-outline" onClick={handleImportClick} disabled={importing}>
+            {importing ? <Spinner size={14} /> : <Upload size={16} />} {importing ? 'Importando...' : 'Importar CSV'}
           </button>
           <button className="btn btn-outline" onClick={handleExport}>
             <Download size={16} /> Exportar CSV

@@ -299,9 +299,9 @@
   transition: all var(--transition);
   white-space: nowrap;
 }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-primary { background: var(--red); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--red-dark); }
-.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-outline { border-color: rgba(255,255,255,0.18); color: var(--white); background: transparent; }
 .btn-outline:hover:not(:disabled) { border-color: var(--red); background: var(--red-soft); }
 .btn-ghost { background: none; border: none; color: var(--gray); }
@@ -1177,4 +1177,16 @@ table.data-table {
     border: none;
   }
   .no-print { display: none !important; }
+}
+
+/* ============ Spinner ============ */
+.spinner {
+  display: inline-block;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

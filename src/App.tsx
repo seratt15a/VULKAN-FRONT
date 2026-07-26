@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ToastStack } from './components/ToastStack';
@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext';
 import { homeByRole } from './lib/roleHome';
 import { Login } from './pages/Login';
 import { SignupRequestPage } from './pages/SignupRequestPage';
+import { NotFound } from './pages/NotFound';
 import { MemberDashboard } from './pages/member/MemberDashboard';
 import { MemberClasses } from './pages/member/MemberClasses';
 import { MemberRoutine } from './pages/member/MemberRoutine';
@@ -28,7 +29,7 @@ import { StaffProfile } from './pages/StaffProfile';
 
 function CatchAll() {
   const { session } = useAuth();
-  return <Navigate to={session ? homeByRole[session.role] : '/login'} replace />;
+  return <NotFound homePath={session ? homeByRole[session.role] : '/login'} />;
 }
 
 export default function App() {
