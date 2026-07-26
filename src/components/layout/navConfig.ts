@@ -38,6 +38,7 @@ export const navByRole: Record<Role, NavItem[]> = {
     { to: '/admin/entrenadores', label: 'Entrenadores', icon: UserCog },
     { to: '/admin/pagos', label: 'Pagos', icon: Wallet },
     { to: '/admin/paquetes', label: 'Paquetes', icon: Package },
+    { to: '/admin/perfil', label: 'Perfil', icon: User },
   ],
   trainer: [
     { to: '/entrenador', label: 'Mi Horario', icon: CalendarDays, end: true },
@@ -47,5 +48,6 @@ export const navByRole: Record<Role, NavItem[]> = {
   reception: [
     { to: '/recepcion', label: 'Check-in', icon: LogIn, end: true },
     { to: '/recepcion/pagos', label: 'Pagos', icon: Wallet },
+    { to: '/recepcion/perfil', label: 'Perfil', icon: User },
   ],
 };

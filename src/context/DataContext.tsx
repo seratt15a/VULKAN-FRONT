@@ -31,6 +31,7 @@ interface DataContextValue {
   addTrainer: (trainer: Omit<Trainer, 'id'>) => void;
   updateTrainer: (id: string, patch: Partial<Trainer>) => void;
   deleteTrainer: (id: string) => void;
+  reassignTrainerClasses: (fromTrainerId: string, toTrainerId: string) => void;
   addClass: (gymClass: Omit<GymClass, 'id' | 'bookedIds' | 'waitlistIds' | 'attendedIds'>) => void;
   updateClass: (id: string, patch: Partial<GymClass>) => void;
   deleteClass: (id: string) => void;
@@ -107,6 +108,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addTrainer: (trainer) => setTrainers((prev) => [...prev, { ...trainer, id: nextId('t') }]),
       updateTrainer: (id, patch) => setTrainers((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t))),
       deleteTrainer: (id) => setTrainers((prev) => prev.filter((t) => t.id !== id)),
+      reassignTrainerClasses: (fromTrainerId, toTrainerId) =>
+        setClasses((prev) => prev.map((c) => (c.trainerId === fromTrainerId ? { ...c, trainerId: toTrainerId } : c))),
       addClass: (gymClass) => setClasses((prev) => [...prev, { ...gymClass, id: nextId('c'), bookedIds: [], waitlistIds: [], attendedIds: [] }]),
       updateClass: (id, patch) => setClasses((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c))),
       deleteClass: (id) => setClasses((prev) => prev.filter((c) => c.id !== id)),

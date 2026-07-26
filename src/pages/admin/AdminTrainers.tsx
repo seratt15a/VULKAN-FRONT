@@ -12,12 +12,14 @@ const emptyForm: FormState = { name: '', email: '', specialty: '', bio: '' };
 
 export function AdminTrainers() {
   usePageTitle('Entrenadores');
-  const { trainers, classes, addTrainer, updateTrainer, deleteTrainer } = useData();
+  const { trainers, classes, addTrainer, updateTrainer, deleteTrainer, reassignTrainerClasses } = useData();
   const { showToast } = useToast();
   const [editing, setEditing] = useState<Trainer | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
   const [pendingDelete, setPendingDelete] = useState<Trainer | null>(null);
+  const [reassignTarget, setReassignTarget] = useState<Trainer | null>(null);
+  const [reassignToId, setReassignToId] = useState('');
   const [query, setQuery] = useState('');
 
   const filtered = trainers.filter((t) => {
@@ -63,7 +65,31 @@ export function AdminTrainers() {
     setPendingDelete(null);
   };
 
-  const pendingDeleteClassCount = pendingDelete ? classes.filter((c) => c.trainerId === pendingDelete.id).length : 0;
+  const handleDeleteClick = (trainer: Trainer) => {
+    const assignedCount = classes.filter((c) => c.trainerId === trainer.id).length;
+    if (assignedCount === 0) {
+      setPendingDelete(trainer);
+      return;
+    }
+    const fallback = trainers.find((t) => t.id !== trainer.id);
+    if (!fallback) {
+      showToast(`${trainer.name} tiene clases asignadas y no hay otro entrenador para reasignarlas. Crea otro entrenador primero.`, 'error');
+      return;
+    }
+    setReassignToId(fallback.id);
+    setReassignTarget(trainer);
+  };
+
+  const handleReassignAndDelete = (e: FormEvent) => {
+    e.preventDefault();
+    if (!reassignTarget) return;
+    reassignTrainerClasses(reassignTarget.id, reassignToId);
+    deleteTrainer(reassignTarget.id);
+    showToast(`Se reasignaron las clases de ${reassignTarget.name} y se eliminó su cuenta.`, 'success');
+    setReassignTarget(null);
+  };
+
+  const reassignClassCount = reassignTarget ? classes.filter((c) => c.trainerId === reassignTarget.id).length : 0;
 
   return (
     <>
@@ -115,7 +141,7 @@ export function AdminTrainers() {
                     <button className="icon-btn" onClick={() => openEdit(t)} aria-label="Editar">
                       <Pencil />
                     </button>
-                    <button className="icon-btn" onClick={() => setPendingDelete(t)} aria-label="Eliminar">
+                    <button className="icon-btn" onClick={() => handleDeleteClick(t)} aria-label="Eliminar">
                       <Trash2 />
                     </button>
                   </div>
@@ -167,14 +193,39 @@ export function AdminTrainers() {
       {pendingDelete && (
         <ConfirmDialog
           title="Eliminar entrenador"
-          message={
-            pendingDeleteClassCount > 0
-              ? `${pendingDelete.name} tiene ${pendingDeleteClassCount} clase(s) asignada(s). Si lo eliminas, deberás reasignarlas a otro entrenador.`
-              : `¿Seguro que quieres eliminar a ${pendingDelete.name}? Esta acción no se puede deshacer.`
-          }
+          message={`¿Seguro que quieres eliminar a ${pendingDelete.name}? Esta acción no se puede deshacer.`}
           onConfirm={confirmDelete}
           onCancel={() => setPendingDelete(null)}
         />
+      )}
+
+      {reassignTarget && (
+        <Modal title={`Reasignar clases de ${reassignTarget.name}`} onClose={() => setReassignTarget(null)}>
+          <form onSubmit={handleReassignAndDelete}>
+            <p style={{ color: 'var(--gray)', fontSize: '0.88rem', marginBottom: 18 }}>
+              {reassignTarget.name} tiene {reassignClassCount} clase{reassignClassCount === 1 ? '' : 's'} asignada{reassignClassCount === 1 ? '' : 's'}.
+              Elige a quién se las reasignamos antes de eliminarlo — no puedes dejar clases sin entrenador.
+            </p>
+            <div className="form-group">
+              <label htmlFor="reassignTo">Nuevo entrenador</label>
+              <select id="reassignTo" value={reassignToId} onChange={(e) => setReassignToId(e.target.value)}>
+                {trainers
+                  .filter((t) => t.id !== reassignTarget.id)
+                  .map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+              </select>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="btn btn-outline" onClick={() => setReassignTarget(null)}>
+                Cancelar
+              </button>
+              <button type="submit" className="btn btn-danger-solid">
+                Reasignar y eliminar
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </>
   );

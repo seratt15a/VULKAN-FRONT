@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Browser-downloaded CSV exports land in the project root during manual testing
+/*.csv
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

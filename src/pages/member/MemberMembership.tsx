@@ -5,6 +5,7 @@ import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { MembershipBadge, PaymentBadge } from '../../components/Badge';
 import { Modal } from '../../components/Modal';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { usePageTitle } from '../../lib/usePageTitle';
 import type { MembershipPlan } from '../../data/types';
@@ -20,10 +21,11 @@ const planPrice: Record<MembershipPlan, number> = { Básico: 29, Pro: 49, Élite
 export function MemberMembership() {
   usePageTitle('Mi Membresía');
   const { session } = useAuth();
-  const { members, payments, sessionPackages, requestFreeze } = useData();
+  const { members, payments, sessionPackages, requestFreeze, updateMember } = useData();
   const { showToast } = useToast();
   const [freezeModalOpen, setFreezeModalOpen] = useState(false);
   const [freezeReason, setFreezeReason] = useState('');
+  const [planChangeTarget, setPlanChangeTarget] = useState<MembershipPlan | null>(null);
 
   const member = members.find((m) => m.id === session?.memberId);
   if (!member) return null;
@@ -37,6 +39,13 @@ export function MemberMembership() {
     showToast('Solicitud de pausa enviada. El equipo la revisará pronto.', 'success');
     setFreezeReason('');
     setFreezeModalOpen(false);
+  };
+
+  const handleConfirmPlanChange = () => {
+    if (!planChangeTarget) return;
+    updateMember(member.id, { plan: planChangeTarget, monthlyFee: planPrice[planChangeTarget] });
+    showToast(`Tu plan ahora es ${planChangeTarget}. Se reflejará en tu próximo cobro.`, 'success');
+    setPlanChangeTarget(null);
   };
 
   return (
@@ -117,7 +126,12 @@ export function MemberMembership() {
           <div key={plan} className="card" style={{ textAlign: 'center', border: plan === member.plan ? '1px solid var(--red)' : undefined }}>
             <h3 style={{ fontFamily: 'var(--font-display)', fontSize: '1.3rem', marginBottom: 8 }}>{plan}</h3>
             <p style={{ fontSize: '1.6rem', marginBottom: 12 }}>{formatCurrency(planPrice[plan])}<span style={{ fontSize: '0.8rem', color: 'var(--gray)' }}>/mes</span></p>
-            <button className={`btn ${plan === member.plan ? 'btn-outline' : 'btn-primary'}`} disabled={plan === member.plan} style={{ width: '100%' }}>
+            <button
+              className={`btn ${plan === member.plan ? 'btn-outline' : 'btn-primary'}`}
+              disabled={plan === member.plan}
+              style={{ width: '100%' }}
+              onClick={() => setPlanChangeTarget(plan)}
+            >
               {plan === member.plan ? 'Plan actual' : 'Elegir plan'}
             </button>
           </div>
@@ -174,6 +188,16 @@ export function MemberMembership() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {planChangeTarget && (
+        <ConfirmDialog
+          title="Cambiar de plan"
+          message={`¿Confirmas el cambio al plan ${planChangeTarget} (${formatCurrency(planPrice[planChangeTarget])}/mes)? Se aplicará desde tu próximo cobro.`}
+          confirmLabel="Cambiar plan"
+          onConfirm={handleConfirmPlanChange}
+          onCancel={() => setPlanChangeTarget(null)}
+        />
       )}
     </>
   );
