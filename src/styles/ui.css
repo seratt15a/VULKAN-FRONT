@@ -406,10 +406,12 @@
   background: var(--black-card);
   border: 1px solid var(--border);
   border-radius: 10px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 table.data-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
 }
 .data-table th {
@@ -1126,6 +1128,9 @@ table.data-table {
 @media (max-width: 640px) {
   .stat-grid, .stat-grid-2, .stat-grid-3 { grid-template-columns: 1fr; }
   .topbar { padding: 0 16px; }
+  .topbar-sub { display: none; }
+  .global-search-input { width: 140px; }
+  .global-search-panel { width: calc(100vw - 32px); left: auto; right: 0; }
   .toast-stack { left: 16px; right: 16px; bottom: 16px; max-width: none; }
   .classes-calendar { grid-template-columns: repeat(2, 1fr); }
   .notif-panel { width: calc(100vw - 32px); right: -16px; }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { Modal } from '../../components/Modal';
@@ -10,7 +11,8 @@ import type { SignupRequest, SignupRequestStatus } from '../../data/types';
 
 export function AdminSignups() {
   usePageTitle('Solicitudes');
-  const { members, trainers, signupRequests, approveSignupRequest, rejectSignupRequest } = useData();
+  const { members, trainers, signupRequests, approveSignupRequest, rejectSignupRequest, logAudit } = useData();
+  const { session } = useAuth();
   const { showToast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'todas' | SignupRequestStatus>('pendiente');
   const [approveTarget, setApproveTarget] = useState<SignupRequest | null>(null);
@@ -35,6 +37,7 @@ export function AdminSignups() {
       return;
     }
     approveSignupRequest(approveTarget.id, trainerId);
+    logAudit(session?.name ?? 'Admin', `Aprobó la solicitud de inscripción de ${approveTarget.name} (nuevo miembro)`);
     showToast(`${approveTarget.name} fue aprobado como nuevo miembro.`, 'success');
     setApproveTarget(null);
   };
@@ -42,6 +45,7 @@ export function AdminSignups() {
   const confirmReject = () => {
     if (!rejectTarget) return;
     rejectSignupRequest(rejectTarget.id);
+    logAudit(session?.name ?? 'Admin', `Rechazó la solicitud de inscripción de ${rejectTarget.name}`);
     showToast(`Se rechazó la solicitud de ${rejectTarget.name}.`, 'info');
     setRejectTarget(null);
   };

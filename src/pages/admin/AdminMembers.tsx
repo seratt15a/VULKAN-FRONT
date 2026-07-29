@@ -216,6 +216,7 @@ export function AdminMembers() {
 
   const handleResolveFreeze = (member: Member, approve: boolean) => {
     resolveFreezeRequest(member.id, approve);
+    logAudit(session?.name ?? 'Admin', `${approve ? 'Aprobó' : 'Rechazó'} la pausa de membresía de ${member.name}`);
     showToast(
       approve ? `Se pausó la membresía de ${member.name}.` : `Se rechazó la solicitud de pausa de ${member.name}.`,
       approve ? 'success' : 'info',

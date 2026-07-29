@@ -106,10 +106,12 @@ export function MemberMembership() {
             {myPackages.map((pkg) => {
               const remaining = pkg.totalSessions - pkg.usedSessions;
               const pct = Math.round((pkg.usedSessions / pkg.totalSessions) * 100);
+              const expired = pkg.expirationDate < new Date().toISOString().slice(0, 10);
               return (
                 <div key={pkg.id} className="card">
                   <div className="cap-label" style={{ marginBottom: 8 }}>
                     <span>{pkg.usedSessions}/{pkg.totalSessions} sesiones usadas</span>
+                    {expired && <span className="badge badge-red" style={{ marginLeft: 8 }}>Vencido</span>}
                   </div>
                   <div className="progress-bar" style={{ marginBottom: 10 }}>
                     <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
