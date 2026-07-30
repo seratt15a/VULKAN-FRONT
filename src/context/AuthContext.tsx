@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Role } from '../data/types';
-import { findDemoAccount, DEMO_PASSWORD } from '../lib/demoAccounts';
-import { useData } from './DataContext';
+import { api, ApiError, clearToken, getToken, setToken } from '../lib/api';
 
 interface Session {
   role: Role;
@@ -11,76 +10,87 @@ interface Session {
   trainerId?: string;
 }
 
-interface LoginResult {
+interface ActionResult {
   ok: boolean;
   error?: string;
 }
 
 interface AuthContextValue {
   session: Session | null;
-  login: (email: string, password: string) => Promise<LoginResult>;
+  login: (email: string, password: string) => Promise<ActionResult>;
   logout: () => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<ActionResult>;
 }
 
-const STORAGE_KEY = 'vulkan.session';
-const ADMIN_AVATAR = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=200&q=80';
-const RECEPTION_AVATAR = 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80';
+const SESSION_KEY = 'vulkan.session';
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { members, trainers } = useData();
   const [session, setSession] = useState<Session | null>(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(SESSION_KEY);
     return raw ? (JSON.parse(raw) as Session) : null;
   });
 
   useEffect(() => {
     if (session) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     } else {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SESSION_KEY);
     }
   }, [session]);
 
+  // Re-validate the stored session against the backend once on load, in case
+  // the token expired or was revoked since the last visit.
+  useEffect(() => {
+    if (!getToken()) {
+      if (session) setSession(null);
+      return;
+    }
+    api
+      .get<{ session: Session }>('/auth/me')
+      .then(({ session: fresh }) => setSession(fresh))
+      .catch(() => {
+        clearToken();
+        setSession(null);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Stable across re-renders (empty deps: none of these read `session` from
+  // the closure) so components that depend on them in a useEffect don't
+  // re-fire just because a login/logout changed the session itself.
+  const login = useCallback(async (email: string, password: string): Promise<ActionResult> => {
+    try {
+      const { token, session: newSession } = await api.post<{ token: string; session: Session }>('/auth/login', {
+        email,
+        password,
+      });
+      setToken(token);
+      setSession(newSession);
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof ApiError ? err.message : 'No se pudo iniciar sesión.' };
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    clearToken();
+    setSession(null);
+  }, []);
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<ActionResult> => {
+    try {
+      await api.patch('/auth/password', { currentPassword, newPassword });
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof ApiError ? err.message : 'No se pudo cambiar la contraseña.' };
+    }
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({
-      session,
-      // Placeholder for a real POST /auth/login — same signature and return
-      // shape a fetch-based implementation would use, so pages never change.
-      login: async (email, password) => {
-        await new Promise((resolve) => setTimeout(resolve, 350));
-
-        const account = findDemoAccount(email);
-        if (!account || password !== DEMO_PASSWORD) {
-          return { ok: false, error: 'Correo o contraseña incorrectos.' };
-        }
-
-        if (account.role === 'admin') {
-          setSession({ role: 'admin', name: 'Staff VULKAN', avatar: ADMIN_AVATAR });
-          return { ok: true };
-        }
-
-        if (account.role === 'reception') {
-          setSession({ role: 'reception', name: 'Recepción VULKAN', avatar: RECEPTION_AVATAR });
-          return { ok: true };
-        }
-
-        if (account.role === 'member') {
-          const member = members.find((m) => m.id === account.memberId);
-          if (!member) return { ok: false, error: 'No se encontró la cuenta asociada.' };
-          setSession({ role: 'member', name: member.name, avatar: member.avatar, memberId: member.id });
-          return { ok: true };
-        }
-
-        const trainer = trainers.find((t) => t.id === account.trainerId);
-        if (!trainer) return { ok: false, error: 'No se encontró la cuenta asociada.' };
-        setSession({ role: 'trainer', name: trainer.name, avatar: trainer.avatar, trainerId: trainer.id });
-        return { ok: true };
-      },
-      logout: () => setSession(null),
-    }),
-    [session, members, trainers],
+    () => ({ session, login, logout, changePassword }),
+    [session, login, logout, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

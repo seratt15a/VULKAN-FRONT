@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { DEMO_PASSWORD } from '../lib/demoAccounts';
 import { homeByRole } from '../lib/roleHome';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useAuth } from '../context/AuthContext';
+
+const DEMO_PASSWORD = 'vulkan2026';
 
 export function Login() {
   usePageTitle('Iniciar sesión');
@@ -66,7 +67,7 @@ export function Login() {
         </form>
 
         <div className="login-demo-hint">
-          <strong>Cuentas de prueba</strong> (aún sin backend real)
+          <strong>Cuentas de prueba</strong>
           <p>admin@vulkangym.com · recepcion@vulkangym.com · andres.reyes@gmail.com · marco.diaz@vulkangym.com</p>
           <p>Contraseña para todas: <code>{DEMO_PASSWORD}</code></p>
           <p style={{ marginTop: 10 }}>

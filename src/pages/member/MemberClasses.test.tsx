@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../test/utils';
 import { useAuth } from '../../context/AuthContext';
-import { DEMO_PASSWORD } from '../../lib/demoAccounts';
 import { MemberClasses } from './MemberClasses';
+
+const DEMO_PASSWORD = 'vulkan2026';
 
 function LoggedInMemberClasses() {
   const { session, login } = useAuth();

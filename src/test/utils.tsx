@@ -8,11 +8,11 @@ import { AuthProvider } from '../context/AuthContext';
 function AllProviders({ children }: { children: ReactNode }) {
   return (
     <MemoryRouter>
-      <DataProvider>
-        <ToastProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </ToastProvider>
-      </DataProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <DataProvider>{children}</DataProvider>
+        </AuthProvider>
+      </ToastProvider>
     </MemoryRouter>
   );
 }

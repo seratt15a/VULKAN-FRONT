@@ -2,14 +2,13 @@ import { useState, type FormEvent } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { DEMO_PASSWORD } from '../lib/demoAccounts';
 import { usePageTitle } from '../lib/usePageTitle';
 
 const roleLabel = { admin: 'Administrador', reception: 'Recepción' } as const;
 
 export function StaffProfile() {
   usePageTitle('Mi Perfil');
-  const { session } = useAuth();
+  const { session, changePassword } = useAuth();
   const { showToast } = useToast();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -19,20 +18,22 @@ export function StaffProfile() {
 
   if (!session || (session.role !== 'admin' && session.role !== 'reception')) return null;
 
-  const handleChangePassword = (e: FormEvent) => {
+  const handleChangePassword = async (e: FormEvent) => {
     e.preventDefault();
     setPasswordError('');
 
-    if (currentPassword !== DEMO_PASSWORD) {
-      setPasswordError('Tu contraseña actual no es correcta.');
-      return;
-    }
     if (newPassword.length < 6) {
       setPasswordError('La nueva contraseña debe tener al menos 6 caracteres.');
       return;
     }
     if (newPassword !== confirmPassword) {
       setPasswordError('Las contraseñas nuevas no coinciden.');
+      return;
+    }
+
+    const result = await changePassword(currentPassword, newPassword);
+    if (!result.ok) {
+      setPasswordError(result.error ?? 'No se pudo cambiar la contraseña.');
       return;
     }
 

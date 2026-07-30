@@ -28,7 +28,7 @@ export function AdminSignups() {
     setApproveTarget(request);
   };
 
-  const confirmApprove = () => {
+  const confirmApprove = async () => {
     if (!approveTarget) return;
     const emailTaken = members.some((m) => m.email.toLowerCase() === approveTarget.email.toLowerCase());
     if (emailTaken) {
@@ -36,9 +36,14 @@ export function AdminSignups() {
       setApproveTarget(null);
       return;
     }
-    approveSignupRequest(approveTarget.id, trainerId);
+    const result = await approveSignupRequest(approveTarget.id, trainerId);
     logAudit(session?.name ?? 'Admin', `Aprobó la solicitud de inscripción de ${approveTarget.name} (nuevo miembro)`);
-    showToast(`${approveTarget.name} fue aprobado como nuevo miembro.`, 'success');
+    if (result) {
+      showToast(`${approveTarget.name} fue aprobado como nuevo miembro.`, 'success');
+      window.alert(
+        `Cuenta creada para ${approveTarget.name} (${approveTarget.email}).\n\nContraseña temporal: ${result.temporaryPassword}\n\nCompártela con el miembro; no se mostrará de nuevo.`,
+      );
+    }
     setApproveTarget(null);
   };
 

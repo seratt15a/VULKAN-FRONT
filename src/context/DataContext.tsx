@@ -5,7 +5,6 @@ import type {
   CheckInRecord,
   GymClass,
   Member,
-  MembershipPlan,
   Payment,
   ProgressPhoto,
   SessionPackage,
@@ -13,14 +12,9 @@ import type {
   Trainer,
   WorkoutPlan,
 } from '../data/types';
-import { members as initialMembers } from '../data/members';
-import { trainers as initialTrainers } from '../data/trainers';
-import { classes as initialClasses } from '../data/classes';
-import { payments as initialPayments } from '../data/payments';
-import { workoutPlans as initialWorkoutPlans } from '../data/workoutPlans';
-import { sessionPackages as initialSessionPackages } from '../data/sessionPackages';
-
-const planFee: Record<MembershipPlan, number> = { Básico: 29, Pro: 49, Élite: 89 };
+import { api, ApiError } from '../lib/api';
+import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 interface DataContextValue {
   members: Member[];
@@ -32,90 +26,124 @@ interface DataContextValue {
   checkIns: CheckInRecord[];
   signupRequests: SignupRequest[];
   auditLog: AuditLogEntry[];
-  addMember: (member: Omit<Member, 'id'>) => void;
-  updateMember: (id: string, patch: Partial<Member>) => void;
-  deleteMember: (id: string) => void;
-  addTrainer: (trainer: Omit<Trainer, 'id'>) => void;
-  updateTrainer: (id: string, patch: Partial<Trainer>) => void;
-  deleteTrainer: (id: string) => void;
-  reassignTrainerClasses: (fromTrainerId: string, toTrainerId: string) => void;
-  addClass: (gymClass: Omit<GymClass, 'id' | 'bookedIds' | 'waitlistIds' | 'attendedIds'>) => void;
-  updateClass: (id: string, patch: Partial<GymClass>) => void;
-  deleteClass: (id: string) => void;
-  toggleBooking: (classId: string, memberId: string) => void;
-  joinWaitlist: (classId: string, memberId: string) => void;
-  leaveWaitlist: (classId: string, memberId: string) => void;
-  toggleAttendance: (classId: string, memberId: string) => void;
-  markPaymentStatus: (id: string, status: Payment['status']) => void;
-  addPayment: (payment: Omit<Payment, 'id'>) => void;
-  updatePayment: (id: string, patch: Partial<Payment>) => void;
-  deletePayment: (id: string) => void;
-  addWorkoutPlan: (plan: Omit<WorkoutPlan, 'id' | 'createdAt'>) => void;
-  updateWorkoutPlan: (id: string, patch: Partial<Omit<WorkoutPlan, 'id'>>) => void;
-  deleteWorkoutPlan: (id: string) => void;
-  requestFreeze: (memberId: string, reason: string) => void;
-  resolveFreezeRequest: (memberId: string, approve: boolean) => void;
-  addSessionPackage: (pkg: Omit<SessionPackage, 'id'>) => void;
-  updateSessionPackage: (id: string, patch: Partial<SessionPackage>) => void;
-  deleteSessionPackage: (id: string) => void;
-  useSessionPackageSession: (packageId: string) => void;
-  addBodyMeasurement: (memberId: string, entry: BodyMeasurement) => void;
-  addProgressPhoto: (memberId: string, photo: ProgressPhoto) => void;
-  deleteProgressPhoto: (memberId: string, photoUrl: string, photoDate: string) => void;
-  checkInMember: (memberId: string) => void;
-  deleteCheckIn: (id: string) => void;
-  addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status'>) => void;
-  approveSignupRequest: (id: string, trainerId: string) => void;
-  rejectSignupRequest: (id: string) => void;
-  logAudit: (actor: string, action: string) => void;
+  addMember: (member: Omit<Member, 'id'>) => Promise<void>;
+  updateMember: (id: string, patch: Partial<Member>) => Promise<void>;
+  deleteMember: (id: string) => Promise<void>;
+  addTrainer: (trainer: Omit<Trainer, 'id'>) => Promise<void>;
+  updateTrainer: (id: string, patch: Partial<Trainer>) => Promise<void>;
+  deleteTrainer: (id: string) => Promise<void>;
+  reassignTrainerClasses: (fromTrainerId: string, toTrainerId: string) => Promise<void>;
+  addClass: (gymClass: Omit<GymClass, 'id' | 'bookedIds' | 'waitlistIds' | 'attendedIds'>) => Promise<void>;
+  updateClass: (id: string, patch: Partial<GymClass>) => Promise<void>;
+  deleteClass: (id: string) => Promise<void>;
+  toggleBooking: (classId: string, memberId: string) => Promise<void>;
+  joinWaitlist: (classId: string, memberId: string) => Promise<void>;
+  leaveWaitlist: (classId: string, memberId: string) => Promise<void>;
+  toggleAttendance: (classId: string, memberId: string) => Promise<void>;
+  markPaymentStatus: (id: string, status: Payment['status']) => Promise<void>;
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<void>;
+  updatePayment: (id: string, patch: Partial<Payment>) => Promise<void>;
+  deletePayment: (id: string) => Promise<void>;
+  addWorkoutPlan: (plan: Omit<WorkoutPlan, 'id' | 'createdAt'>) => Promise<void>;
+  updateWorkoutPlan: (id: string, patch: Partial<Omit<WorkoutPlan, 'id'>>) => Promise<void>;
+  deleteWorkoutPlan: (id: string) => Promise<void>;
+  requestFreeze: (memberId: string, reason: string) => Promise<void>;
+  resolveFreezeRequest: (memberId: string, approve: boolean) => Promise<void>;
+  addSessionPackage: (pkg: Omit<SessionPackage, 'id'>) => Promise<void>;
+  updateSessionPackage: (id: string, patch: Partial<SessionPackage>) => Promise<void>;
+  deleteSessionPackage: (id: string) => Promise<void>;
+  useSessionPackageSession: (packageId: string) => Promise<void>;
+  addBodyMeasurement: (memberId: string, entry: BodyMeasurement) => Promise<void>;
+  addProgressPhoto: (memberId: string, photo: ProgressPhoto) => Promise<void>;
+  deleteProgressPhoto: (memberId: string, photoUrl: string, photoDate: string) => Promise<void>;
+  checkInMember: (memberId: string) => Promise<void>;
+  deleteCheckIn: (id: string) => Promise<void>;
+  addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status'>) => Promise<void>;
+  approveSignupRequest: (id: string, trainerId: string) => Promise<{ temporaryPassword: string } | undefined>;
+  rejectSignupRequest: (id: string) => Promise<void>;
+  logAudit: (actor: string, action: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
 
-const nextId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
-
-const STORAGE_KEY = 'vulkan.data';
-
-interface StoredData {
-  members: Member[];
-  trainers: Trainer[];
-  classes: GymClass[];
-  payments: Payment[];
-  workoutPlans: WorkoutPlan[];
-  sessionPackages: SessionPackage[];
-  checkIns: CheckInRecord[];
-  signupRequests: SignupRequest[];
-  auditLog: AuditLogEntry[];
-}
-
-function loadStored(): StoredData | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as StoredData) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [members, setMembers] = useState<Member[]>(() => loadStored()?.members ?? initialMembers);
-  const [trainers, setTrainers] = useState<Trainer[]>(() => loadStored()?.trainers ?? initialTrainers);
-  const [classes, setClasses] = useState<GymClass[]>(() => loadStored()?.classes ?? initialClasses);
-  const [payments, setPayments] = useState<Payment[]>(() => loadStored()?.payments ?? initialPayments);
-  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>(() => loadStored()?.workoutPlans ?? initialWorkoutPlans);
-  const [sessionPackages, setSessionPackages] = useState<SessionPackage[]>(
-    () => loadStored()?.sessionPackages ?? initialSessionPackages,
-  );
-  const [checkIns, setCheckIns] = useState<CheckInRecord[]>(() => loadStored()?.checkIns ?? []);
-  const [signupRequests, setSignupRequests] = useState<SignupRequest[]>(() => loadStored()?.signupRequests ?? []);
-  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>(() => loadStored()?.auditLog ?? []);
+  const { session } = useAuth();
+  const { showToast } = useToast();
 
+  const [members, setMembers] = useState<Member[]>([]);
+  const [trainers, setTrainers] = useState<Trainer[]>([]);
+  const [classes, setClasses] = useState<GymClass[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
+  const [sessionPackages, setSessionPackages] = useState<SessionPackage[]>([]);
+  const [checkIns, setCheckIns] = useState<CheckInRecord[]>([]);
+  const [signupRequests, setSignupRequests] = useState<SignupRequest[]>([]);
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  // Load every resource this role can see once, right after login. Pages keep
+  // filtering the flat arrays client-side exactly like the old mock did.
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns, signupRequests, auditLog }),
-    );
-  }, [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns, signupRequests, auditLog]);
+    if (!session) {
+      setMembers([]);
+      setTrainers([]);
+      setClasses([]);
+      setPayments([]);
+      setWorkoutPlans([]);
+      setSessionPackages([]);
+      setCheckIns([]);
+      setSignupRequests([]);
+      setAuditLog([]);
+      setLoaded(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoaded(false);
+
+    (async () => {
+      try {
+        const canSeeCheckIns = session.role === 'admin' || session.role === 'reception';
+        const canSeeAdminOnly = session.role === 'admin';
+
+        const [m, t, c, p, wp, sp, ci, sr, al] = await Promise.all([
+          api.get<Member[]>('/members'),
+          api.get<Trainer[]>('/trainers'),
+          api.get<GymClass[]>('/classes'),
+          api.get<Payment[]>('/payments'),
+          api.get<WorkoutPlan[]>('/workout-plans'),
+          api.get<SessionPackage[]>('/session-packages'),
+          canSeeCheckIns ? api.get<CheckInRecord[]>('/check-ins') : Promise.resolve<CheckInRecord[]>([]),
+          canSeeAdminOnly ? api.get<SignupRequest[]>('/signup-requests') : Promise.resolve<SignupRequest[]>([]),
+          canSeeAdminOnly ? api.get<AuditLogEntry[]>('/audit-log') : Promise.resolve<AuditLogEntry[]>([]),
+        ]);
+        if (cancelled) return;
+        setMembers(m);
+        setTrainers(t);
+        setClasses(c);
+        setPayments(p);
+        setWorkoutPlans(wp);
+        setSessionPackages(sp);
+        setCheckIns(ci);
+        setSignupRequests(sr);
+        setAuditLog(al);
+      } catch (err) {
+        if (!cancelled) {
+          showToast(err instanceof ApiError ? err.message : 'No se pudieron cargar los datos del gimnasio.', 'error');
+        }
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session, showToast]);
+
+  const onError = (err: unknown, fallback: string) => {
+    showToast(err instanceof ApiError ? err.message : fallback, 'error');
+  };
 
   const value = useMemo<DataContextValue>(
     () => ({
@@ -128,164 +156,348 @@ export function DataProvider({ children }: { children: ReactNode }) {
       checkIns,
       signupRequests,
       auditLog,
-      addMember: (member) => setMembers((prev) => [...prev, { ...member, id: nextId('m') }]),
-      updateMember: (id, patch) => setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m))),
-      deleteMember: (id) => {
-        setMembers((prev) => prev.filter((m) => m.id !== id));
-        setClasses((prev) =>
-          prev.map((c) => ({
-            ...c,
-            bookedIds: c.bookedIds.filter((mid) => mid !== id),
-            waitlistIds: c.waitlistIds.filter((mid) => mid !== id),
-            attendedIds: c.attendedIds.filter((mid) => mid !== id),
-          })),
-        );
+
+      addMember: async (member) => {
+        try {
+          const created = await api.post<Member>('/members', member);
+          setMembers((prev) => [...prev, created]);
+        } catch (err) {
+          onError(err, 'No se pudo agregar al miembro.');
+        }
       },
-      addTrainer: (trainer) => setTrainers((prev) => [...prev, { ...trainer, id: nextId('t') }]),
-      updateTrainer: (id, patch) => setTrainers((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t))),
-      deleteTrainer: (id) => setTrainers((prev) => prev.filter((t) => t.id !== id)),
-      reassignTrainerClasses: (fromTrainerId, toTrainerId) =>
-        setClasses((prev) => prev.map((c) => (c.trainerId === fromTrainerId ? { ...c, trainerId: toTrainerId } : c))),
-      addClass: (gymClass) => setClasses((prev) => [...prev, { ...gymClass, id: nextId('c'), bookedIds: [], waitlistIds: [], attendedIds: [] }]),
-      updateClass: (id, patch) => setClasses((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c))),
-      deleteClass: (id) => setClasses((prev) => prev.filter((c) => c.id !== id)),
-      toggleBooking: (classId, memberId) =>
-        setClasses((prev) =>
-          prev.map((c) => {
-            if (c.id !== classId) return c;
-            const isBooked = c.bookedIds.includes(memberId);
-            if (isBooked) {
-              const remaining = c.bookedIds.filter((id) => id !== memberId);
-              const [promoted, ...restWaitlist] = c.waitlistIds;
-              return promoted
-                ? { ...c, bookedIds: [...remaining, promoted], waitlistIds: restWaitlist }
-                : { ...c, bookedIds: remaining };
-            }
-            if (c.bookedIds.length >= c.capacity) return c;
-            return { ...c, bookedIds: [...c.bookedIds, memberId] };
-          }),
-        ),
-      joinWaitlist: (classId, memberId) =>
-        setClasses((prev) =>
-          prev.map((c) => (c.id === classId && !c.waitlistIds.includes(memberId) ? { ...c, waitlistIds: [...c.waitlistIds, memberId] } : c)),
-        ),
-      leaveWaitlist: (classId, memberId) =>
-        setClasses((prev) => prev.map((c) => (c.id === classId ? { ...c, waitlistIds: c.waitlistIds.filter((id) => id !== memberId) } : c))),
-      toggleAttendance: (classId, memberId) => {
-        const gymClass = classes.find((c) => c.id === classId);
-        if (!gymClass) return;
-        const alreadyAttended = gymClass.attendedIds.includes(memberId);
-        setClasses((prev) =>
-          prev.map((c) =>
-            c.id === classId
-              ? { ...c, attendedIds: alreadyAttended ? c.attendedIds.filter((id) => id !== memberId) : [...c.attendedIds, memberId] }
-              : c,
-          ),
-        );
-        setMembers((prev) =>
-          prev.map((m) => (m.id === memberId ? { ...m, checkIns: Math.max(0, m.checkIns + (alreadyAttended ? -1 : 1)) } : m)),
-        );
+      updateMember: async (id, patch) => {
+        try {
+          const updated = await api.patch<Member>(`/members/${id}`, patch);
+          setMembers((prev) => prev.map((m) => (m.id === id ? updated : m)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar al miembro.');
+        }
       },
-      markPaymentStatus: (id, status) => setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p))),
-      addPayment: (payment) => setPayments((prev) => [...prev, { ...payment, id: nextId('p') }]),
-      updatePayment: (id, patch) => setPayments((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
-      deletePayment: (id) => setPayments((prev) => prev.filter((p) => p.id !== id)),
-      addWorkoutPlan: (plan) =>
-        setWorkoutPlans((prev) => [...prev, { ...plan, id: nextId('wp'), createdAt: new Date().toISOString().slice(0, 10) }]),
-      updateWorkoutPlan: (id, patch) => setWorkoutPlans((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
-      deleteWorkoutPlan: (id) => setWorkoutPlans((prev) => prev.filter((p) => p.id !== id)),
-      requestFreeze: (memberId, reason) =>
-        setMembers((prev) =>
-          prev.map((m) =>
-            m.id === memberId ? { ...m, freezeRequest: { reason, requestedAt: new Date().toISOString().slice(0, 10) } } : m,
-          ),
-        ),
-      resolveFreezeRequest: (memberId, approve) =>
-        setMembers((prev) =>
-          prev.map((m) => (m.id === memberId ? { ...m, freezeRequest: null, status: approve ? 'pausada' : m.status } : m)),
-        ),
-      addSessionPackage: (pkg) => setSessionPackages((prev) => [...prev, { ...pkg, id: nextId('pkg') }]),
-      updateSessionPackage: (id, patch) => setSessionPackages((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
-      deleteSessionPackage: (id) => setSessionPackages((prev) => prev.filter((p) => p.id !== id)),
-      useSessionPackageSession: (packageId) =>
-        setSessionPackages((prev) =>
-          prev.map((p) => (p.id === packageId && p.usedSessions < p.totalSessions ? { ...p, usedSessions: p.usedSessions + 1 } : p)),
-        ),
-      addBodyMeasurement: (memberId, entry) =>
-        setMembers((prev) =>
-          prev.map((m) => {
-            if (m.id !== memberId) return m;
-            const existingIndex = m.bodyMeasurements.findIndex((e) => e.date === entry.date);
-            const bodyMeasurements =
-              existingIndex === -1
-                ? [...m.bodyMeasurements, entry]
-                : m.bodyMeasurements.map((e, i) => (i === existingIndex ? entry : e));
-            return { ...m, bodyMeasurements };
-          }),
-        ),
-      addProgressPhoto: (memberId, photo) =>
-        setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, progressPhotos: [...m.progressPhotos, photo] } : m))),
-      deleteProgressPhoto: (memberId, photoUrl, photoDate) =>
-        setMembers((prev) =>
-          prev.map((m) =>
-            m.id === memberId
-              ? { ...m, progressPhotos: m.progressPhotos.filter((p) => !(p.url === photoUrl && p.date === photoDate)) }
-              : m,
-          ),
-        ),
-      checkInMember: (memberId) => {
-        const now = new Date();
-        setCheckIns((prev) => [
-          ...prev,
-          { id: nextId('ci'), memberId, date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5) },
-        ]);
-        setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, checkIns: m.checkIns + 1 } : m)));
+      deleteMember: async (id) => {
+        try {
+          await api.delete(`/members/${id}`);
+          setMembers((prev) => prev.filter((m) => m.id !== id));
+          setClasses((prev) =>
+            prev.map((c) => ({
+              ...c,
+              bookedIds: c.bookedIds.filter((mid) => mid !== id),
+              waitlistIds: c.waitlistIds.filter((mid) => mid !== id),
+              attendedIds: c.attendedIds.filter((mid) => mid !== id),
+            })),
+          );
+        } catch (err) {
+          onError(err, 'No se pudo eliminar al miembro.');
+        }
       },
-      deleteCheckIn: (id) => {
-        const record = checkIns.find((c) => c.id === id);
-        if (!record) return;
-        setCheckIns((prev) => prev.filter((c) => c.id !== id));
-        setMembers((prev) => prev.map((m) => (m.id === record.memberId ? { ...m, checkIns: Math.max(0, m.checkIns - 1) } : m)));
+
+      addTrainer: async (trainer) => {
+        try {
+          const created = await api.post<Trainer>('/trainers', trainer);
+          setTrainers((prev) => [...prev, created]);
+        } catch (err) {
+          onError(err, 'No se pudo agregar al entrenador.');
+        }
       },
-      addSignupRequest: (request) =>
-        setSignupRequests((prev) => [
-          ...prev,
-          { ...request, id: nextId('sr'), requestedAt: new Date().toISOString().slice(0, 10), status: 'pendiente' },
-        ]),
-      approveSignupRequest: (id, trainerId) => {
-        const request = signupRequests.find((r) => r.id === id);
-        if (!request) return;
-        setSignupRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'aprobado' } : r)));
-        setMembers((prev) => [
-          ...prev,
-          {
-            id: nextId('m'),
-            name: request.name,
-            email: request.email,
-            avatar: `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(request.name)}&backgroundColor=e8112a`,
-            plan: request.planInterest,
-            status: 'activa',
-            joinDate: new Date().toISOString().slice(0, 10),
-            nextPaymentDate: new Date().toISOString().slice(0, 10),
-            monthlyFee: planFee[request.planInterest],
-            checkIns: 0,
-            trainerId,
-            currentStreakDays: 0,
-            weightGoalKg: 70,
-            weightHistory: [],
-            emergencyContact: { name: '', phone: '', relationship: '' },
-            bodyMeasurements: [],
-            progressPhotos: [],
+      updateTrainer: async (id, patch) => {
+        try {
+          const updated = await api.patch<Trainer>(`/trainers/${id}`, patch);
+          setTrainers((prev) => prev.map((t) => (t.id === id ? updated : t)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar al entrenador.');
+        }
+      },
+      deleteTrainer: async (id) => {
+        try {
+          await api.delete(`/trainers/${id}`);
+          setTrainers((prev) => prev.filter((t) => t.id !== id));
+        } catch (err) {
+          onError(err, 'No se pudo eliminar al entrenador.');
+        }
+      },
+      reassignTrainerClasses: async (fromTrainerId, toTrainerId) => {
+        try {
+          await api.post(`/trainers/${fromTrainerId}/reassign-classes`, { toTrainerId });
+          setClasses((prev) => prev.map((c) => (c.trainerId === fromTrainerId ? { ...c, trainerId: toTrainerId } : c)));
+        } catch (err) {
+          onError(err, 'No se pudieron reasignar las clases.');
+        }
+      },
+
+      addClass: async (gymClass) => {
+        try {
+          const created = await api.post<GymClass>('/classes', gymClass);
+          setClasses((prev) => [...prev, created]);
+        } catch (err) {
+          onError(err, 'No se pudo crear la clase.');
+        }
+      },
+      updateClass: async (id, patch) => {
+        try {
+          const updated = await api.patch<GymClass>(`/classes/${id}`, patch);
+          setClasses((prev) => prev.map((c) => (c.id === id ? updated : c)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar la clase.');
+        }
+      },
+      deleteClass: async (id) => {
+        try {
+          await api.delete(`/classes/${id}`);
+          setClasses((prev) => prev.filter((c) => c.id !== id));
+        } catch (err) {
+          onError(err, 'No se pudo eliminar la clase.');
+        }
+      },
+      toggleBooking: async (classId, memberId) => {
+        try {
+          const updated = await api.post<GymClass>(`/classes/${classId}/toggle-booking`, { memberId });
+          setClasses((prev) => prev.map((c) => (c.id === classId ? updated : c)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar tu reserva.');
+        }
+      },
+      joinWaitlist: async (classId, memberId) => {
+        try {
+          const updated = await api.post<GymClass>(`/classes/${classId}/waitlist/join`, { memberId });
+          setClasses((prev) => prev.map((c) => (c.id === classId ? updated : c)));
+        } catch (err) {
+          onError(err, 'No se pudo unir a la lista de espera.');
+        }
+      },
+      leaveWaitlist: async (classId, memberId) => {
+        try {
+          const updated = await api.post<GymClass>(`/classes/${classId}/waitlist/leave`, { memberId });
+          setClasses((prev) => prev.map((c) => (c.id === classId ? updated : c)));
+        } catch (err) {
+          onError(err, 'No se pudo salir de la lista de espera.');
+        }
+      },
+      toggleAttendance: async (classId, memberId) => {
+        try {
+          const gymClass = classes.find((c) => c.id === classId);
+          const alreadyAttended = gymClass?.attendedIds.includes(memberId) ?? false;
+          const updated = await api.post<GymClass>(`/classes/${classId}/toggle-attendance`, { memberId });
+          setClasses((prev) => prev.map((c) => (c.id === classId ? updated : c)));
+          setMembers((prev) =>
+            prev.map((m) => (m.id === memberId ? { ...m, checkIns: Math.max(0, m.checkIns + (alreadyAttended ? -1 : 1)) } : m)),
+          );
+        } catch (err) {
+          onError(err, 'No se pudo actualizar la asistencia.');
+        }
+      },
+
+      markPaymentStatus: async (id, status) => {
+        try {
+          const updated = await api.patch<Payment>(`/payments/${id}`, { status });
+          setPayments((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar el pago.');
+        }
+      },
+      addPayment: async (payment) => {
+        try {
+          const created = await api.post<Payment>('/payments', payment);
+          setPayments((prev) => [...prev, created]);
+        } catch (err) {
+          onError(err, 'No se pudo registrar el pago.');
+        }
+      },
+      updatePayment: async (id, patch) => {
+        try {
+          const updated = await api.patch<Payment>(`/payments/${id}`, patch);
+          setPayments((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar el pago.');
+        }
+      },
+      deletePayment: async (id) => {
+        try {
+          await api.delete(`/payments/${id}`);
+          setPayments((prev) => prev.filter((p) => p.id !== id));
+        } catch (err) {
+          onError(err, 'No se pudo eliminar el pago.');
+        }
+      },
+
+      addWorkoutPlan: async (plan) => {
+        try {
+          const created = await api.post<WorkoutPlan>('/workout-plans', plan);
+          setWorkoutPlans((prev) => [...prev, created]);
+        } catch (err) {
+          onError(err, 'No se pudo asignar la rutina.');
+        }
+      },
+      updateWorkoutPlan: async (id, patch) => {
+        try {
+          const updated = await api.patch<WorkoutPlan>(`/workout-plans/${id}`, patch);
+          setWorkoutPlans((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar la rutina.');
+        }
+      },
+      deleteWorkoutPlan: async (id) => {
+        try {
+          await api.delete(`/workout-plans/${id}`);
+          setWorkoutPlans((prev) => prev.filter((p) => p.id !== id));
+        } catch (err) {
+          onError(err, 'No se pudo eliminar la rutina.');
+        }
+      },
+
+      requestFreeze: async (memberId, reason) => {
+        try {
+          const updated = await api.patch<Member>(`/members/${memberId}`, {
+            freezeRequest: { reason, requestedAt: new Date().toISOString().slice(0, 10) },
+          });
+          setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+        } catch (err) {
+          onError(err, 'No se pudo enviar la solicitud de pausa.');
+        }
+      },
+      resolveFreezeRequest: async (memberId, approve) => {
+        try {
+          const current = members.find((m) => m.id === memberId);
+          const updated = await api.patch<Member>(`/members/${memberId}`, {
             freezeRequest: null,
-          },
-        ]);
+            status: approve ? 'pausada' : current?.status,
+          });
+          setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+        } catch (err) {
+          onError(err, 'No se pudo resolver la solicitud de pausa.');
+        }
       },
-      rejectSignupRequest: (id) => setSignupRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'rechazado' } : r))),
-      logAudit: (actor, action) =>
-        setAuditLog((prev) => [...prev, { id: nextId('log'), timestamp: new Date().toISOString(), actor, action }]),
+
+      addSessionPackage: async (pkg) => {
+        try {
+          const created = await api.post<SessionPackage>('/session-packages', pkg);
+          setSessionPackages((prev) => [...prev, created]);
+        } catch (err) {
+          onError(err, 'No se pudo vender el paquete.');
+        }
+      },
+      updateSessionPackage: async (id, patch) => {
+        try {
+          const updated = await api.patch<SessionPackage>(`/session-packages/${id}`, patch);
+          setSessionPackages((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        } catch (err) {
+          onError(err, 'No se pudo actualizar el paquete.');
+        }
+      },
+      deleteSessionPackage: async (id) => {
+        try {
+          await api.delete(`/session-packages/${id}`);
+          setSessionPackages((prev) => prev.filter((p) => p.id !== id));
+        } catch (err) {
+          onError(err, 'No se pudo eliminar el paquete.');
+        }
+      },
+      useSessionPackageSession: async (packageId) => {
+        try {
+          const updated = await api.post<SessionPackage>(`/session-packages/${packageId}/use`);
+          setSessionPackages((prev) => prev.map((p) => (p.id === packageId ? updated : p)));
+        } catch (err) {
+          onError(err, 'No se pudo registrar el uso de la sesión.');
+        }
+      },
+
+      addBodyMeasurement: async (memberId, entry) => {
+        try {
+          const updated = await api.put<Member>(`/members/${memberId}/measurements`, entry);
+          setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+        } catch (err) {
+          onError(err, 'No se pudo registrar la medición.');
+        }
+      },
+      addProgressPhoto: async (memberId, photo) => {
+        try {
+          const updated = await api.post<Member>(`/members/${memberId}/photos`, photo);
+          setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+        } catch (err) {
+          onError(err, 'No se pudo agregar la foto.');
+        }
+      },
+      deleteProgressPhoto: async (memberId, photoUrl, photoDate) => {
+        try {
+          const updated = await api.delete<Member>(`/members/${memberId}/photos`, { url: photoUrl, date: photoDate });
+          setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+        } catch (err) {
+          onError(err, 'No se pudo eliminar la foto.');
+        }
+      },
+
+      checkInMember: async (memberId) => {
+        try {
+          const created = await api.post<CheckInRecord>('/check-ins', { memberId });
+          setCheckIns((prev) => [...prev, created]);
+          setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, checkIns: m.checkIns + 1 } : m)));
+        } catch (err) {
+          onError(err, 'No se pudo registrar el check-in.');
+        }
+      },
+      deleteCheckIn: async (id) => {
+        try {
+          const record = checkIns.find((c) => c.id === id);
+          await api.delete(`/check-ins/${id}`);
+          setCheckIns((prev) => prev.filter((c) => c.id !== id));
+          if (record) {
+            setMembers((prev) =>
+              prev.map((m) => (m.id === record.memberId ? { ...m, checkIns: Math.max(0, m.checkIns - 1) } : m)),
+            );
+          }
+        } catch (err) {
+          onError(err, 'No se pudo deshacer el check-in.');
+        }
+      },
+
+      addSignupRequest: async (request) => {
+        try {
+          const created = await api.post<SignupRequest>('/signup-requests', request);
+          setSignupRequests((prev) => [...prev, created]);
+        } catch (err) {
+          onError(err, 'No se pudo enviar la solicitud.');
+        }
+      },
+      approveSignupRequest: async (id, trainerId) => {
+        try {
+          const result = await api.post<{ memberId: string; temporaryPassword: string }>(`/signup-requests/${id}/approve`, {
+            trainerId,
+          });
+          const refreshedMembers = await api.get<Member[]>('/members');
+          setMembers(refreshedMembers);
+          setSignupRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'aprobado' } : r)));
+          return { temporaryPassword: result.temporaryPassword };
+        } catch (err) {
+          onError(err, 'No se pudo aprobar la solicitud.');
+          return undefined;
+        }
+      },
+      rejectSignupRequest: async (id) => {
+        try {
+          await api.post(`/signup-requests/${id}/reject`);
+          setSignupRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'rechazado' } : r)));
+        } catch (err) {
+          onError(err, 'No se pudo rechazar la solicitud.');
+        }
+      },
+
+      logAudit: async (actor, action) => {
+        try {
+          const entry = await api.post<AuditLogEntry>('/audit-log', { actor, action });
+          setAuditLog((prev) => [entry, ...prev]);
+        } catch {
+          // Auditing must never block the action it's recording; fail silently.
+        }
+      },
     }),
     [members, trainers, classes, payments, workoutPlans, sessionPackages, checkIns, signupRequests, auditLog],
   );
+
+  if (session && !loaded) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gray)' }}>
+        Cargando…
+      </div>
+    );
+  }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

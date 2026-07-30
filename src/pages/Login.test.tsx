@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from '../test/utils';
 import { Login } from './Login';
-import { DEMO_PASSWORD } from '../lib/demoAccounts';
+
+const DEMO_PASSWORD = 'vulkan2026';
 
 describe('Login', () => {
   it('shows an error for the wrong password', async () => {

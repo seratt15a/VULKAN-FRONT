@@ -13,13 +13,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <DataProvider>
-          <ToastProvider>
-            <AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <DataProvider>
               <App />
-            </AuthProvider>
-          </ToastProvider>
-        </DataProvider>
+            </DataProvider>
+          </AuthProvider>
+        </ToastProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>,

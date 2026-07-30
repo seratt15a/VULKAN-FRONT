@@ -3,7 +3,6 @@ import { Dumbbell, Users, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
-import { DEMO_PASSWORD } from '../../lib/demoAccounts';
 import { StatCard } from '../../components/StatCard';
 import { usePageTitle } from '../../lib/usePageTitle';
 
@@ -11,7 +10,7 @@ type Tab = 'general' | 'seguridad';
 
 export function TrainerProfile() {
   usePageTitle('Mi Perfil');
-  const { session } = useAuth();
+  const { session, changePassword } = useAuth();
   const { trainers, classes, updateTrainer } = useData();
   const { showToast } = useToast();
   const trainer = trainers.find((t) => t.id === session?.trainerId);
@@ -44,20 +43,22 @@ export function TrainerProfile() {
     showToast('Perfil actualizado correctamente.', 'success');
   };
 
-  const handleChangePassword = (e: FormEvent) => {
+  const handleChangePassword = async (e: FormEvent) => {
     e.preventDefault();
     setPasswordError('');
 
-    if (currentPassword !== DEMO_PASSWORD) {
-      setPasswordError('Tu contraseña actual no es correcta.');
-      return;
-    }
     if (newPassword.length < 6) {
       setPasswordError('La nueva contraseña debe tener al menos 6 caracteres.');
       return;
     }
     if (newPassword !== confirmPassword) {
       setPasswordError('Las contraseñas nuevas no coinciden.');
+      return;
+    }
+
+    const result = await changePassword(currentPassword, newPassword);
+    if (!result.ok) {
+      setPasswordError(result.error ?? 'No se pudo cambiar la contraseña.');
       return;
     }
 
