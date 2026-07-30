@@ -9,15 +9,23 @@ export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
-    await forgotPassword(email);
+    const result = await forgotPassword(email);
     setLoading(false);
-    // Always show the same confirmation, whether or not the email has an
-    // account, so this form can't be used to find out who is registered.
-    setSubmitted(true);
+    // The backend always returns success whether or not the email has an
+    // account, so this can't be used to find out who is registered — but a
+    // real failure (e.g. rate-limited) still needs to be shown as such,
+    // instead of silently claiming an email is on its way.
+    if (result.ok) {
+      setSubmitted(true);
+    } else {
+      setError(result.error ?? 'No se pudo procesar la solicitud.');
+    }
   };
 
   return (
@@ -47,6 +55,8 @@ export function ForgotPasswordPage() {
                 required
               />
             </div>
+
+            {error && <p style={{ color: 'var(--red)', fontSize: '0.85rem', marginBottom: 16 }}>{error}</p>}
 
             <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%' }}>
               {loading ? 'Enviando…' : 'Enviar nueva contraseña'}
