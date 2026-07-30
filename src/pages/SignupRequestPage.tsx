@@ -59,6 +59,11 @@ export function SignupRequestPage() {
             </select>
           </div>
 
+          <p style={{ color: 'var(--gray)', fontSize: '0.78rem', lineHeight: 1.5, marginBottom: 16 }}>
+            Usamos tus datos únicamente para crear y gestionar tu membresía en VULKAN — no los compartimos con
+            terceros.
+          </p>
+
           <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%' }}>
             {loading ? 'Enviando…' : 'Enviar solicitud'}
           </button>
