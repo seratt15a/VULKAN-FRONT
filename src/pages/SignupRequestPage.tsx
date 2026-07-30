@@ -14,14 +14,19 @@ export function SignupRequestPage() {
   const [phone, setPhone] = useState('');
   const [planInterest, setPlanInterest] = useState<MembershipPlan>('Básico');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   if (submitted) return <Navigate to="/login" replace />;
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    addSignupRequest({ name, email, phone, planInterest });
-    showToast('Solicitud enviada. El equipo de VULKAN la revisará pronto.', 'success');
-    setSubmitted(true);
+    setLoading(true);
+    const ok = await addSignupRequest({ name, email, phone, planInterest });
+    setLoading(false);
+    if (ok) {
+      showToast('Solicitud enviada. El equipo de VULKAN la revisará pronto.', 'success');
+      setSubmitted(true);
+    }
   };
 
   return (
@@ -54,8 +59,8 @@ export function SignupRequestPage() {
             </select>
           </div>
 
-          <button className="btn btn-primary" type="submit" style={{ width: '100%' }}>
-            Enviar solicitud
+          <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: '100%' }}>
+            {loading ? 'Enviando…' : 'Enviar solicitud'}
           </button>
         </form>
 

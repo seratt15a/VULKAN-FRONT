@@ -58,7 +58,7 @@ interface DataContextValue {
   deleteProgressPhoto: (memberId: string, photoUrl: string, photoDate: string) => Promise<void>;
   checkInMember: (memberId: string) => Promise<void>;
   deleteCheckIn: (id: string) => Promise<void>;
-  addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status'>) => Promise<void>;
+  addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status'>) => Promise<boolean>;
   approveSignupRequest: (id: string, trainerId: string) => Promise<{ temporaryPassword: string; emailSent: boolean } | undefined>;
   rejectSignupRequest: (id: string) => Promise<void>;
   logAudit: (actor: string, action: string) => Promise<void>;
@@ -452,8 +452,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         try {
           const created = await api.post<SignupRequest>('/signup-requests', request);
           setSignupRequests((prev) => [...prev, created]);
+          return true;
         } catch (err) {
           onError(err, 'No se pudo enviar la solicitud.');
+          return false;
         }
       },
       approveSignupRequest: async (id, trainerId) => {
