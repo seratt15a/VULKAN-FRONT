@@ -39,10 +39,14 @@ export function AdminSignups() {
     const result = await approveSignupRequest(approveTarget.id, trainerId);
     logAudit(session?.name ?? 'Admin', `Aprobó la solicitud de inscripción de ${approveTarget.name} (nuevo miembro)`);
     if (result) {
-      showToast(`${approveTarget.name} fue aprobado como nuevo miembro.`, 'success');
-      window.alert(
-        `Cuenta creada para ${approveTarget.name} (${approveTarget.email}).\n\nContraseña temporal: ${result.temporaryPassword}\n\nCompártela con el miembro; no se mostrará de nuevo.`,
-      );
+      if (result.emailSent) {
+        showToast(`${approveTarget.name} fue aprobado. Le enviamos sus credenciales por correo.`, 'success');
+      } else {
+        showToast(`${approveTarget.name} fue aprobado como nuevo miembro.`, 'success');
+        window.alert(
+          `No se pudo enviar el correo de bienvenida.\n\nCuenta creada para ${approveTarget.name} (${approveTarget.email}).\nContraseña temporal: ${result.temporaryPassword}\n\nCompártela con el miembro; no se mostrará de nuevo.`,
+        );
+      }
     }
     setApproveTarget(null);
   };

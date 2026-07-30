@@ -59,7 +59,7 @@ interface DataContextValue {
   checkInMember: (memberId: string) => Promise<void>;
   deleteCheckIn: (id: string) => Promise<void>;
   addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status'>) => Promise<void>;
-  approveSignupRequest: (id: string, trainerId: string) => Promise<{ temporaryPassword: string } | undefined>;
+  approveSignupRequest: (id: string, trainerId: string) => Promise<{ temporaryPassword: string; emailSent: boolean } | undefined>;
   rejectSignupRequest: (id: string) => Promise<void>;
   logAudit: (actor: string, action: string) => Promise<void>;
 }
@@ -458,13 +458,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       },
       approveSignupRequest: async (id, trainerId) => {
         try {
-          const result = await api.post<{ memberId: string; temporaryPassword: string }>(`/signup-requests/${id}/approve`, {
-            trainerId,
-          });
+          const result = await api.post<{ memberId: string; temporaryPassword: string; emailSent: boolean }>(
+            `/signup-requests/${id}/approve`,
+            { trainerId },
+          );
           const refreshedMembers = await api.get<Member[]>('/members');
           setMembers(refreshedMembers);
           setSignupRequests((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'aprobado' } : r)));
-          return { temporaryPassword: result.temporaryPassword };
+          return { temporaryPassword: result.temporaryPassword, emailSent: result.emailSent };
         } catch (err) {
           onError(err, 'No se pudo aprobar la solicitud.');
           return undefined;
