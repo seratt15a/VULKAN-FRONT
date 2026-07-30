@@ -5,6 +5,7 @@ import { ToastStack } from './components/ToastStack';
 import { useAuth } from './context/AuthContext';
 import { homeByRole } from './lib/roleHome';
 import { Login } from './pages/Login';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { SignupRequestPage } from './pages/SignupRequestPage';
 import { NotFound } from './pages/NotFound';
 import { MemberDashboard } from './pages/member/MemberDashboard';
@@ -39,6 +40,7 @@ export default function App() {
       <ToastStack />
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/olvide-password" element={<ForgotPasswordPage />} />
         <Route path="/inscripcion" element={<SignupRequestPage />} />
 
         <Route

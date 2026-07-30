@@ -66,6 +66,9 @@ export function Login() {
 
         <div className="login-demo-hint">
           <p>
+            <Link to="/olvide-password">¿Olvidaste tu contraseña?</Link>
+          </p>
+          <p>
             ¿Aún no eres miembro? <Link to="/inscripcion">Solicita tu inscripción</Link>.
           </p>
         </div>

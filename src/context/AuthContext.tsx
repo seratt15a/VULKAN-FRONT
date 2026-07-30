@@ -20,6 +20,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<ActionResult>;
   logout: () => void;
   changePassword: (currentPassword: string, newPassword: string) => Promise<ActionResult>;
+  forgotPassword: (email: string) => Promise<ActionResult>;
 }
 
 const SESSION_KEY = 'vulkan.session';
@@ -88,9 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const forgotPassword = useCallback(async (email: string): Promise<ActionResult> => {
+    try {
+      await api.post('/auth/forgot-password', { email });
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof ApiError ? err.message : 'No se pudo procesar la solicitud.' };
+    }
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ session, login, logout, changePassword }),
-    [session, login, logout, changePassword],
+    () => ({ session, login, logout, changePassword, forgotPassword }),
+    [session, login, logout, changePassword, forgotPassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
