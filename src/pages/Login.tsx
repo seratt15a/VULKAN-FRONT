@@ -4,8 +4,6 @@ import { homeByRole } from '../lib/roleHome';
 import { usePageTitle } from '../lib/usePageTitle';
 import { useAuth } from '../context/AuthContext';
 
-const DEMO_PASSWORD = 'vulkan2026';
-
 export function Login() {
   usePageTitle('Iniciar sesión');
   const { session, login } = useAuth();
@@ -67,10 +65,7 @@ export function Login() {
         </form>
 
         <div className="login-demo-hint">
-          <strong>Cuentas de prueba</strong>
-          <p>admin@vulkangym.com · recepcion@vulkangym.com · andres.reyes@gmail.com · marco.diaz@vulkangym.com</p>
-          <p>Contraseña para todas: <code>{DEMO_PASSWORD}</code></p>
-          <p style={{ marginTop: 10 }}>
+          <p>
             ¿Aún no eres miembro? <Link to="/inscripcion">Solicita tu inscripción</Link>.
           </p>
         </div>
