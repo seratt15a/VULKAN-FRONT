@@ -95,6 +95,7 @@ export function AdminSignups() {
               <th>Plan de interés</th>
               <th>Fecha</th>
               <th>Estado</th>
+              <th>Correo</th>
               <th></th>
             </tr>
           </thead>
@@ -110,9 +111,22 @@ export function AdminSignups() {
                 <td>{formatDate(r.requestedAt)}</td>
                 <td>{statusBadge(r.status)}</td>
                 <td>
+                  {r.emailVerified ? (
+                    <span className="badge badge-green">confirmado</span>
+                  ) : (
+                    <span className="badge badge-amber">sin confirmar</span>
+                  )}
+                </td>
+                <td>
                   {r.status === 'pendiente' && (
                     <div className="table-actions">
-                      <button className="icon-btn" onClick={() => openApprove(r)} aria-label="Aprobar">
+                      <button
+                        className="icon-btn"
+                        onClick={() => openApprove(r)}
+                        disabled={!r.emailVerified}
+                        aria-label="Aprobar"
+                        title={r.emailVerified ? 'Aprobar' : 'El solicitante aún no confirmó su correo'}
+                      >
                         <Check />
                       </button>
                       <button className="icon-btn" onClick={() => setRejectTarget(r)} aria-label="Rechazar">
@@ -125,7 +139,7 @@ export function AdminSignups() {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6}>
+                <td colSpan={7}>
                   <div className="empty-state">No hay solicitudes en este estado.</div>
                 </td>
               </tr>

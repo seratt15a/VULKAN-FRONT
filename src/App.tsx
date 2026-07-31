@@ -7,6 +7,7 @@ import { homeByRole } from './lib/roleHome';
 import { Login } from './pages/Login';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { SignupRequestPage } from './pages/SignupRequestPage';
+import { VerifyEmailPage } from './pages/VerifyEmailPage';
 import { NotFound } from './pages/NotFound';
 import { MemberDashboard } from './pages/member/MemberDashboard';
 import { MemberClasses } from './pages/member/MemberClasses';
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/olvide-password" element={<ForgotPasswordPage />} />
         <Route path="/inscripcion" element={<SignupRequestPage />} />
+        <Route path="/verificar-correo" element={<VerifyEmailPage />} />
 
         <Route
           element={

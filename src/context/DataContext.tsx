@@ -58,7 +58,7 @@ interface DataContextValue {
   deleteProgressPhoto: (memberId: string, photoUrl: string, photoDate: string) => Promise<void>;
   checkInMember: (memberId: string) => Promise<void>;
   deleteCheckIn: (id: string) => Promise<void>;
-  addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status'>) => Promise<boolean>;
+  addSignupRequest: (request: Omit<SignupRequest, 'id' | 'requestedAt' | 'status' | 'emailVerified'>) => Promise<boolean>;
   approveSignupRequest: (id: string, trainerId: string) => Promise<{ temporaryPassword: string; emailSent: boolean } | undefined>;
   rejectSignupRequest: (id: string) => Promise<void>;
   logAudit: (actor: string, action: string) => Promise<void>;

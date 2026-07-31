@@ -24,7 +24,7 @@ export function SignupRequestPage() {
     const ok = await addSignupRequest({ name, email, phone, planInterest });
     setLoading(false);
     if (ok) {
-      showToast('Solicitud enviada. El equipo de VULKAN la revisará pronto.', 'success');
+      showToast('Solicitud enviada. Revisa tu correo para confirmarlo antes de que el equipo la revise.', 'success');
       setSubmitted(true);
     }
   };

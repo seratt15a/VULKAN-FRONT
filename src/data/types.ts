@@ -136,6 +136,7 @@ export interface SignupRequest {
   planInterest: MembershipPlan;
   requestedAt: string;
   status: SignupRequestStatus;
+  emailVerified: boolean;
 }
 
 export interface AuditLogEntry {
